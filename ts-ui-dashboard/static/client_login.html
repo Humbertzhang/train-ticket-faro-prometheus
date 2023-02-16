@@ -26,6 +26,16 @@
 
 </head>
 
+<script src="./js/faro_common.js"></script>
+<script
+        src="https://unpkg.com/@grafana/faro-web-sdk@1.0.0-beta4/dist/bundle/faro-web-sdk.iife.js"
+        onload="faro_init()"
+></script>
+<script
+        src="https://unpkg.com/@grafana/faro-web-tracing@1.0.0-beta4/dist/bundle/faro-web-tracing.iife.js"
+        onload="faro_addTracing()"
+></script>
+
 <body data-type="generalComponents">
 
     <div id="loginApp">

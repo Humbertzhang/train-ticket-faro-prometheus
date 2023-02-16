@@ -43,6 +43,17 @@
         <script type="text/javascript" src="js/flowAdvancedSearch.js" defer charset="UTF-8"></script>
         <script type="text/javascript" src="js/news.js" defer charset="UTF-8"></script>
     </head>
+
+    <script src="./js/faro_common.js"></script>
+    <script
+            src="https://unpkg.com/@grafana/faro-web-sdk@1.0.0-beta4/dist/bundle/faro-web-sdk.iife.js"
+            onload="faro_init()"
+    ></script>
+    <script
+            src="https://unpkg.com/@grafana/faro-web-tracing@1.0.0-beta4/dist/bundle/faro-web-tracing.iife.js"
+            onload="faro_addTracing()"
+    ></script>
+
     <body onload="onLoadBody()">
     <div class="container">
         <nav class="navbar navbar-default" role="navigation">
