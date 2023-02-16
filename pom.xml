@@ -61,6 +61,18 @@
 
 
     <dependencies>
+        <!-- prometheus 等相关配置 START-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-registry-prometheus</artifactId>
+        </dependency>
+        <!-- prometheus 等相关配置 END-->
+
+
         <!--        需要注意springboot、springcloud、springcloud alibaba之间的版本对应关系-->
 
         <!--        springcloud 相关依赖 在dependency management中-->
