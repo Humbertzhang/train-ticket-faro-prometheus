@@ -5,6 +5,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.fudan.common.entity.*;
 import edu.fudan.common.util.JsonUtils;
 import edu.fudan.common.util.Response;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tags;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import javax.annotation.PostConstruct;
 import java.util.*;
 
 /**
@@ -23,6 +27,22 @@ import java.util.*;
  */
 @Service
 public class BasicServiceImpl implements BasicService {
+
+    private Counter post_basic_travel_ErrorCounter;
+    private Counter post_basic_travels_ErrorCounter;
+    private Counter get_basic_stationName_ErrorCounter;
+
+    @Autowired
+    private MeterRegistry meterRegistry;
+
+    @PostConstruct
+    public void init() {
+        Tags tags = Tags.of("service", "ts-basic-service");
+        meterRegistry.config().commonTags(tags);
+        post_basic_travel_ErrorCounter = Counter.builder("request.post.basic.travel.error").register(meterRegistry);
+        post_basic_travels_ErrorCounter = Counter.builder("request.post.basic.travels.error").register(meterRegistry);
+        get_basic_stationName_ErrorCounter = Counter.builder("request.get.basic.stationName.error").register(meterRegistry);
+    }
 
     @Autowired
     private RestTemplate restTemplate;
@@ -60,6 +80,7 @@ public class BasicServiceImpl implements BasicService {
 
         TrainType trainType = queryTrainTypeByName(info.getTrip().getTrainTypeName(), headers);
         if (trainType == null) {
+            post_basic_travel_ErrorCounter.increment();
             BasicServiceImpl.LOGGER.warn("[queryForTravel][traintype doesn't exist][trainTypeName: {}]", info.getTrip().getTrainTypeName());
             result.setStatus(false);
             response.setStatus(0);
@@ -74,6 +95,7 @@ public class BasicServiceImpl implements BasicService {
         if(route == null){
             result.setStatus(false);
             response.setStatus(0);
+            post_basic_travel_ErrorCounter.increment();
             response.setMsg("Route doesn't exist");
             return response;
         }
@@ -93,6 +115,7 @@ public class BasicServiceImpl implements BasicService {
             result.setStatus(false);
             response.setStatus(0);
             response.setMsg("Station not correct in Route");
+            post_basic_travel_ErrorCounter.increment();
             return response;
         }
         PriceConfig priceConfig = queryPriceConfigByRouteIdAndTrainType(routeId, trainType.getName(), headers);
@@ -184,6 +207,7 @@ public class BasicServiceImpl implements BasicService {
         Map<String, String> stationMap = checkStationsExists(new ArrayList<>(stationNames), headers);
         if(stationMap == null) {
             response.setStatus(0);
+            post_basic_travels_ErrorCounter.increment();
             response.setMsg("all stations don't exist");
             return response;
         }
@@ -200,6 +224,7 @@ public class BasicServiceImpl implements BasicService {
         }
 
         if(avaTrips.size() == 0){
+            post_basic_travels_ErrorCounter.increment();
             response.setStatus(0);
             response.setMsg("no travel info available");
             return response;
@@ -208,6 +233,7 @@ public class BasicServiceImpl implements BasicService {
         // check if train_type exist
         List<TrainType> tts = queryTrainTypeByNames(new ArrayList<>(trainTypeNames), headers);
         if(tts == null){
+            post_basic_travels_ErrorCounter.increment();
             response.setStatus(0);
             response.setMsg("all train_type don't exist");
             return response;
@@ -223,6 +249,7 @@ public class BasicServiceImpl implements BasicService {
             }
         }
         if(avaTrips.size() ==0){
+            post_basic_travels_ErrorCounter.increment();
             response.setStatus(0);
             response.setMsg("no travel info available");
             return response;
@@ -231,6 +258,7 @@ public class BasicServiceImpl implements BasicService {
         // check if route exist to exclude invalid travel info
         List<Route> routes = getRoutesByRouteIds(new ArrayList<>(routeIds), headers);
         if(routes == null) {
+            post_basic_travels_ErrorCounter.increment();
             response.setStatus(0);
             response.setMsg("all routes don't exist");
             return response;
@@ -258,6 +286,7 @@ public class BasicServiceImpl implements BasicService {
             }
         }
         if(avaTrips.size() == 0){
+            post_basic_travels_ErrorCounter.increment();
             response.setStatus(0);
             response.setMsg("no travel info available");
             return response;
@@ -331,6 +360,7 @@ public class BasicServiceImpl implements BasicService {
                 requestEntity,
                 Response.class);
         if (re.getBody().getStatus() != 1) {
+            get_basic_stationName_ErrorCounter.increment();
             String msg = re.getBody().getMsg();
             BasicServiceImpl.LOGGER.warn("[queryForStationId][Query for stationId error][stationName: {}, message: {}]", stationName, msg);
             return new Response<>(0, msg, null);

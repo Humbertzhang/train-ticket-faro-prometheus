@@ -1,6 +1,9 @@
 package travel2.controller;
 
 import edu.fudan.common.entity.TripResponse;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tags;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import travel2.service.TravelService;
 
+import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 
 import static org.springframework.http.ResponseEntity.ok;
@@ -95,6 +99,19 @@ public class Travel2Controller {
         return ok(service.delete(tripId, headers));
     }
 
+    @Autowired
+    private MeterRegistry meterRegistry;
+
+    private Counter post_trips_left_ErrorCounter;
+
+    @PostConstruct
+    public void init() {
+        Tags tags = Tags.of("service", "ts-travel2-service");
+        meterRegistry.config().commonTags(tags);
+        post_trips_left_ErrorCounter = Counter.builder("request.post.trips.left.error").register(meterRegistry);
+    }
+
+
     /**
      * Return Trip and the remaining tickets
      *
@@ -109,6 +126,7 @@ public class Travel2Controller {
                 info.getEndPlace() == null || info.getEndPlace().length() == 0 ||
                 info.getDepartureTime() == null) {
             Travel2Controller.LOGGER.info("[query][Travel Query Fail][Something null]");
+            post_trips_left_ErrorCounter.increment();
             ArrayList<TripResponse> errorList = new ArrayList<>();
             return ok(errorList);
         }

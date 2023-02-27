@@ -3,6 +3,9 @@ package order.service;
 import edu.fudan.common.entity.*;
 import edu.fudan.common.util.Response;
 import edu.fudan.common.util.StringUtils;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tags;
 import order.entity.OrderAlterInfo;
 import order.entity.Order;
 import order.entity.OrderInfo;
@@ -21,6 +24,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import javax.annotation.PostConstruct;
 import java.util.*;
 
 /**
@@ -28,6 +32,47 @@ import java.util.*;
  */
 @Service
 public class OrderServiceImpl implements OrderService {
+
+    private Counter post_order_tickets_ErrorCounter;
+    private Counter post_order_ErrorCounter;
+    private Counter post_order_admin_ErrorCounter;
+    private Counter post_order_query_ErrorCounter;
+    private Counter post_order_refresh_ErrorCounter;
+    private Counter get_order_travelDate_trainNumber_ErrorCounter;
+    private Counter get_order_price_orderId_ErrorCounter;
+    private Counter get_order_orderPay_orderId_ErrorCounter;
+    private Counter get_order_orderId_ErrorCounter;
+    private Counter get_order_status_orderId_status_ErrorCounter;
+    private Counter get_order_security_checkDate_accountId_ErrorCounter;
+    private Counter put_order_ErrorCounter;
+    private Counter put_order_admin_ErrorCounter;
+    private Counter delete_order_orderId_ErrorCounter;
+    private Counter get_order_ErrorCounter;
+
+    @Autowired
+    private MeterRegistry meterRegistry;
+
+    @PostConstruct
+    public void init() {
+        Tags tags = Tags.of("service", "ts-order-service");
+        meterRegistry.config().commonTags(tags);
+
+        post_order_tickets_ErrorCounter = Counter.builder("request.post.order.tickets.error").register(meterRegistry);
+        post_order_ErrorCounter = Counter.builder("request.post.order.error").register(meterRegistry);
+        post_order_admin_ErrorCounter = Counter.builder("request.post.order.admin.error").register(meterRegistry);
+        post_order_query_ErrorCounter = Counter.builder("request.post.order.query.error").register(meterRegistry);
+        post_order_refresh_ErrorCounter = Counter.builder("request.post.order.refresh.error").register(meterRegistry);
+        get_order_travelDate_trainNumber_ErrorCounter = Counter.builder("request.get.order.travelDate.trainNumber.error").register(meterRegistry);
+        get_order_price_orderId_ErrorCounter = Counter.builder("request.get.order.price.orderId.error").register(meterRegistry);
+        get_order_orderPay_orderId_ErrorCounter = Counter.builder("request.get.order.orderPay.orderId.error").register(meterRegistry);
+        get_order_orderId_ErrorCounter = Counter.builder("request.get.order.orderId.error").register(meterRegistry);
+        get_order_status_orderId_status_ErrorCounter = Counter.builder("request.get.order.status.orderId.status.error").register(meterRegistry);
+        get_order_security_checkDate_accountId_ErrorCounter = Counter.builder("request.get.order.security.checkDate.accountId.error").register(meterRegistry);
+        put_order_ErrorCounter = Counter.builder("request.put.order.error").register(meterRegistry);
+        put_order_admin_ErrorCounter = Counter.builder("request.put.order.admin.error").register(meterRegistry);
+        delete_order_orderId_ErrorCounter = Counter.builder("request.delete.order.orderId.error").register(meterRegistry);
+        get_order_ErrorCounter = Counter.builder("request.get.order.error").register(meterRegistry);
+    }
 
     @Autowired
     private OrderRepository orderRepository;
@@ -65,6 +110,7 @@ public class OrderServiceImpl implements OrderService {
             OrderServiceImpl.LOGGER.info("[getSoldTickets][Left ticket info][info is: {}]", leftTicketInfo.toString());
             return new Response<>(1, success, leftTicketInfo);
         } else {
+            post_order_tickets_ErrorCounter.increment();
             OrderServiceImpl.LOGGER.warn("[getSoldTickets][Seat][Left ticket info is empty][seat from date: {}, train number: {}]",seatRequest.getTravelDate(),seatRequest.getTrainNumber()); //warn级别，获取资源但资源为空
             return new Response<>(0, "Order is Null.", null);
         }
@@ -88,6 +134,7 @@ public class OrderServiceImpl implements OrderService {
         OrderServiceImpl.LOGGER.info("[create][Create Order][Ready to Create Order]");
         ArrayList<Order> accountOrders = orderRepository.findByAccountId(order.getAccountId());
         if (accountOrders.contains(order)) {
+            post_order_ErrorCounter.increment();
             OrderServiceImpl.LOGGER.error("[create][Order Create Fail][Order already exists][OrderId: {}]", order.getId());
             return new Response<>(0, "Order already exist", null);
         } else {
@@ -223,6 +270,7 @@ public class OrderServiceImpl implements OrderService {
     public Response saveChanges(Order order, HttpHeaders headers) {
         Optional<Order> op = orderRepository.findById(order.getId());
         if (!op.isPresent()) {
+            put_order_ErrorCounter.increment();
             OrderServiceImpl.LOGGER.error("[saveChanges][Modify Order Fail][Order not found][OrderId: {}]", order.getId());
             return new Response<>(0, orderNotFound, null);
         } else {
@@ -306,6 +354,7 @@ public class OrderServiceImpl implements OrderService {
             OrderServiceImpl.LOGGER.warn("[getAllOrders][Find all orders Success][size:{}]",orders.size());
             return new Response<>(1, "Success.", orders);
         } else {
+            get_order_ErrorCounter.increment();
             OrderServiceImpl.LOGGER.warn("[getAllOrders][Find all orders Fail][{}]","No content");
             return new Response<>(0, "No Content.", null);
         }
@@ -315,6 +364,7 @@ public class OrderServiceImpl implements OrderService {
     public Response modifyOrder(String orderId, int status, HttpHeaders headers) {
         Optional<Order> op = orderRepository.findById(orderId);
         if (!op.isPresent()) {
+            get_order_status_orderId_status_ErrorCounter.increment();
             OrderServiceImpl.LOGGER.error("[modifyOrder][Modify order Fail][Order not found][OrderId: {}]",orderId);
             return new Response<>(0, orderNotFound, null);
         } else {
@@ -330,6 +380,7 @@ public class OrderServiceImpl implements OrderService {
     public Response getOrderPrice(String orderId, HttpHeaders headers) {
         Optional<Order> op = orderRepository.findById(orderId);
         if (!op.isPresent()) {
+            get_order_price_orderId_ErrorCounter.increment();
             OrderServiceImpl.LOGGER.error("[getOrderPrice][Get order price Fail][Order not found][OrderId: {}]",orderId);
             return new Response<>(0, orderNotFound, "-1.0");
         } else {
@@ -344,6 +395,7 @@ public class OrderServiceImpl implements OrderService {
         Optional<Order> op = orderRepository.findById(orderId);
         if (!op.isPresent()) {
             OrderServiceImpl.LOGGER.error("[payOrder][Pay order Fail][Order not found][OrderId: {}]",orderId);
+            get_order_orderPay_orderId_ErrorCounter.increment();
             return new Response<>(0, orderNotFound, null);
         } else {
             Order order = op.get();
@@ -358,6 +410,7 @@ public class OrderServiceImpl implements OrderService {
     public Response getOrderById(String orderId, HttpHeaders headers) {
         Optional<Order> op = orderRepository.findById(orderId);
         if (!op.isPresent()) {
+            get_order_orderId_ErrorCounter.increment();
             OrderServiceImpl.LOGGER.warn("[getOrderById][Get Order By ID Fail][Order not found][OrderId: {}]",orderId);
             return new Response<>(0, orderNotFound, null);
         } else {
@@ -411,6 +464,7 @@ public class OrderServiceImpl implements OrderService {
 
         Optional<Order> op = orderRepository.findById(orderUuid);
         if (!op.isPresent()) {
+            delete_order_orderId_ErrorCounter.increment();
             OrderServiceImpl.LOGGER.error("[deleteOrder][Delete order Fail][Order not found][OrderId: {}]",orderId);
             return new Response<>(0, "Order Not Exist.", null);
         } else {
@@ -427,6 +481,7 @@ public class OrderServiceImpl implements OrderService {
         ArrayList<Order> accountOrders = orderRepository.findByAccountId(order.getAccountId());
         if (accountOrders.contains(order)) {
             OrderServiceImpl.LOGGER.error("[addNewOrder][Admin Add Order Fail][Order already exists][OrderId: {}]",order.getId());
+            post_order_admin_ErrorCounter.increment();
             return new Response<>(0, "Order already exist", null);
         } else {
             order.setId(UUID.randomUUID().toString());
@@ -441,6 +496,7 @@ public class OrderServiceImpl implements OrderService {
         LOGGER.info("[updateOrder][Admin Update Order][Order Info:{}] ", order.toString());
         Optional<Order> op = orderRepository.findById(order.getId());
         if (!op.isPresent()) {
+            put_order_admin_ErrorCounter.increment();
             OrderServiceImpl.LOGGER.error("[updateOrder][Admin Update Order Fail][Order not found][OrderId: {}]",order.getId());
             return new Response<>(0, "Order Not Found, Can't update", null);
         } else {

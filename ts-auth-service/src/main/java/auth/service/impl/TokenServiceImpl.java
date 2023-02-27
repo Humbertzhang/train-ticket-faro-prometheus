@@ -9,6 +9,9 @@ import auth.repository.UserRepository;
 import auth.security.jwt.JWTProvider;
 import auth.service.TokenService;
 import edu.fudan.common.util.Response;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tags;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +29,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 
+import javax.annotation.PostConstruct;
 import java.text.MessageFormat;
 import java.util.List;
 
@@ -34,6 +38,17 @@ import java.util.List;
  */
 @Service
 public class TokenServiceImpl implements TokenService {
+
+    private Counter post_users_login_ErrorCounter;
+    @Autowired
+    private MeterRegistry meterRegistry;
+    @PostConstruct
+    public void init() {
+        Tags tags = Tags.of("service", "ts-auth-service");
+        meterRegistry.config().commonTags(tags);
+        post_users_login_ErrorCounter = Counter.builder("request.post.users.login.error").register(meterRegistry);
+    }
+
     private static final Logger LOGGER = LoggerFactory.getLogger(TokenServiceImpl.class);
 
     @Autowired
@@ -73,16 +88,20 @@ public class TokenServiceImpl implements TokenService {
 
             // failed code
             if (!id) {
+                post_users_login_ErrorCounter.increment();
                 LOGGER.info("[getToken][Verification failed][userName: {}]", username);
                 return new Response<>(0, "Verification failed.", null);
             }
         }
+
+        // TODO: Session 与 UserID之间的映射
 
         // verify username and password
         UsernamePasswordAuthenticationToken upat = new UsernamePasswordAuthenticationToken(username, password);
         try {
             authenticationManager.authenticate(upat);
         } catch (AuthenticationException e) {
+            post_users_login_ErrorCounter.increment();
             LOGGER.warn("[getToken][Incorrect username or password][username: {}, password: {}]", username, password);
             return new Response<>(0, "Incorrect username or password.", null);
         }

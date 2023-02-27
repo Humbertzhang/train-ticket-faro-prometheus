@@ -3,6 +3,9 @@ package travelplan.service;
 import edu.fudan.common.util.JsonUtils;
 import edu.fudan.common.util.Response;
 import edu.fudan.common.util.StringUtils;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tags;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +24,7 @@ import travelplan.entity.TransferTravelInfo;
 import travelplan.entity.TransferTravelResult;
 import travelplan.entity.TravelAdvanceResultUnit;
 
+import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -33,6 +37,23 @@ import java.util.List;
 public class TravelPlanServiceImpl implements TravelPlanService {
 
     @Autowired
+    private MeterRegistry meterRegistry;
+    private Counter post_travelPlan_transferResult_ErrorCounter;
+    private Counter post_travelPlan_cheapest_ErrorCounter;
+    private Counter post_travelPlan_quickest_ErrorCounter;
+    private Counter post_travelPlan_minStation_ErrorCounter;
+
+    @PostConstruct
+    public void init() {
+        Tags tags = Tags.of("service", "ts-travel-plan-service");
+        meterRegistry.config().commonTags(tags);
+        post_travelPlan_transferResult_ErrorCounter = Counter.builder("request.post.travelPlan.transferResult.error").register(meterRegistry);
+        post_travelPlan_cheapest_ErrorCounter = Counter.builder("request.post.travelPlan.cheapest.error").register(meterRegistry);
+        post_travelPlan_quickest_ErrorCounter = Counter.builder("request.post.travelPlan.quickest.error").register(meterRegistry);
+        post_travelPlan_minStation_ErrorCounter = Counter.builder("request.post.travelPlan.minStation.error").register(meterRegistry);
+    }
+
+    @Autowired
     private RestTemplate restTemplate;
     @Autowired
     private DiscoveryClient discoveryClient;
@@ -41,6 +62,9 @@ public class TravelPlanServiceImpl implements TravelPlanService {
 
     String success = "Success";
     String cannotFind = "Cannot Find";
+
+    public TravelPlanServiceImpl() {
+    }
 
     private String getServiceUrl(String serviceName) {
         return "http://" + serviceName;
@@ -126,6 +150,7 @@ public class TravelPlanServiceImpl implements TravelPlanService {
 
             return new Response<>(1, success, lists);
         } else {
+            post_travelPlan_cheapest_ErrorCounter.increment();
             TravelPlanServiceImpl.LOGGER.warn("[getCheapest][Get cheapest trip warn][Route Plan Result Units: {}]","No Content");
             return new Response<>(0, cannotFind, null);
         }
@@ -174,6 +199,7 @@ public class TravelPlanServiceImpl implements TravelPlanService {
             }
             return new Response<>(1, success, lists);
         } else {
+            post_travelPlan_quickest_ErrorCounter.increment();
             TravelPlanServiceImpl.LOGGER.warn("[getQuickest][Get quickest trip warn][Route Plan Result Units: {}]","No Content");
             return new Response<>(0, cannotFind, null);
         }
@@ -222,6 +248,7 @@ public class TravelPlanServiceImpl implements TravelPlanService {
             }
             return new Response<>(1, success, lists);
         } else {
+            post_travelPlan_minStation_ErrorCounter.increment();
             TravelPlanServiceImpl.LOGGER.warn("[getMinStation][Get min stations trip warn][Route Plan Result Units: {}]","No Content");
             return new Response<>(0, cannotFind, null);
         }

@@ -3,6 +3,9 @@ package other.service;
 import edu.fudan.common.entity.*;
 import edu.fudan.common.util.Response;
 import edu.fudan.common.util.StringUtils;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tags;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
@@ -19,6 +22,7 @@ import other.repository.OrderOtherRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.util.*;
 
 /**
@@ -26,6 +30,47 @@ import java.util.*;
  */
 @Service
 public class OrderOtherServiceImpl implements OrderOtherService {
+
+    private Counter post_orderOther_tickets_ErrorCounter;
+    private Counter post_orderOther_ErrorCounter;
+    private Counter post_orderOther_admin_ErrorCounter;
+    private Counter post_orderOther_query_ErrorCounter;
+    private Counter post_orderOther_refresh_ErrorCounter;
+    private Counter get_orderOther_travelDate_trainNumber_ErrorCounter;
+    private Counter get_orderOther_price_orderId_ErrorCounter;
+    private Counter get_orderOther_orderPay_orderId_ErrorCounter;
+    private Counter get_orderOther_orderId_ErrorCounter;
+    private Counter get_orderOther_status_orderId_status_ErrorCounter;
+    private Counter get_orderOther_security_checkDate_accountId_ErrorCounter;
+    private Counter put_orderOther_ErrorCounter;
+    private Counter put_orderOther_admin_ErrorCounter;
+    private Counter delete_orderOther_orderId_ErrorCounter;
+    private Counter get_orderOther_ErrorCounter;
+
+    @Autowired
+    private MeterRegistry meterRegistry;
+
+    @PostConstruct
+    public void init() {
+        Tags tags = Tags.of("service", "ts-order-other-service");
+        meterRegistry.config().commonTags(tags);
+
+        post_orderOther_tickets_ErrorCounter = Counter.builder("request.post.orderOther.tickets.error").register(meterRegistry);
+        post_orderOther_ErrorCounter = Counter.builder("request.post.orderOther.error").register(meterRegistry);
+        post_orderOther_admin_ErrorCounter = Counter.builder("request.post.orderOther.admin.error").register(meterRegistry);
+        post_orderOther_query_ErrorCounter = Counter.builder("request.post.orderOther.query.error").register(meterRegistry);
+        post_orderOther_refresh_ErrorCounter = Counter.builder("request.post.orderOther.refresh.error").register(meterRegistry);
+        get_orderOther_travelDate_trainNumber_ErrorCounter = Counter.builder("request.get.orderOther.travelDate.trainNumber.error").register(meterRegistry);
+        get_orderOther_price_orderId_ErrorCounter = Counter.builder("request.get.orderOther.price.orderId.error").register(meterRegistry);
+        get_orderOther_orderPay_orderId_ErrorCounter = Counter.builder("request.get.orderOther.orderPay.orderId.error").register(meterRegistry);
+        get_orderOther_orderId_ErrorCounter = Counter.builder("request.get.orderOther.orderId.error").register(meterRegistry);
+        get_orderOther_status_orderId_status_ErrorCounter = Counter.builder("request.get.orderOther.status.orderId.status.error").register(meterRegistry);
+        get_orderOther_security_checkDate_accountId_ErrorCounter = Counter.builder("request.get.orderOther.security.checkDate.accountId.error").register(meterRegistry);
+        put_orderOther_ErrorCounter = Counter.builder("request.put.orderOther.error").register(meterRegistry);
+        put_orderOther_admin_ErrorCounter = Counter.builder("request.put.orderOther.admin.error").register(meterRegistry);
+        delete_orderOther_orderId_ErrorCounter = Counter.builder("request.delete.orderOther.orderId.error").register(meterRegistry);
+        get_orderOther_ErrorCounter = Counter.builder("request.get.orderOther.error").register(meterRegistry);
+    }
 
     @Autowired
     private OrderOtherRepository orderOtherRepository;
@@ -68,7 +113,7 @@ public class OrderOtherServiceImpl implements OrderOtherService {
 
             return new Response<>(1, success, leftTicketInfo);
         } else {
-
+            post_orderOther_tickets_ErrorCounter.increment();
             OrderOtherServiceImpl.LOGGER.warn("[getSoldTickets][Seat][No content][seat from date: {}, train number: {}",seatRequest.getTravelDate(),seatRequest.getTrainNumber());
             return new Response<>(0, "Seat is Null.", null);
         }
@@ -92,6 +137,7 @@ public class OrderOtherServiceImpl implements OrderOtherService {
         OrderOtherServiceImpl.LOGGER.info("[create][Create Order][Ready Create Order]");
         ArrayList<Order> accountOrders = orderOtherRepository.findByAccountId(order.getAccountId());
         if (accountOrders.contains(order)) {
+            post_orderOther_ErrorCounter.increment();
             OrderOtherServiceImpl.LOGGER.error("[create][Order Create Fail][Order already exists][OrderId: {}]", order.getId());
             return new Response<>(0, "Order already exist", order);
         } else {
@@ -134,6 +180,7 @@ public class OrderOtherServiceImpl implements OrderOtherService {
             OrderOtherServiceImpl.LOGGER.info("[alterOrder][Alter Order Success][newOrderId:{}]",newOrder.getId());
             return new Response<>(1, "Alter Order Success", newOrder);
         } else {
+            put_orderOther_ErrorCounter.increment();
             OrderOtherServiceImpl.LOGGER.error("[alterOrder][Alter Order Fail][Create new order fail][newOrderId: {}]", newOrder.getId());
             return new Response<>(0, cor.getMsg(), null);
         }
@@ -321,6 +368,7 @@ public class OrderOtherServiceImpl implements OrderOtherService {
     public Response getAllOrders(HttpHeaders headers) {
         ArrayList<Order> orders = orderOtherRepository.findAll();
         if (orders == null) {
+            get_orderOther_ErrorCounter.increment();
             OrderOtherServiceImpl.LOGGER.warn("[getAllOrders][Find all orders warn][{}]","No content");
             return new Response<>(0, "No Content", null);
         } else {
@@ -333,6 +381,7 @@ public class OrderOtherServiceImpl implements OrderOtherService {
     public Response modifyOrder(String orderId, int status, HttpHeaders headers) {
         Optional<Order> op = orderOtherRepository.findById(orderId);
         if (!op.isPresent()) {
+            get_orderOther_status_orderId_status_ErrorCounter.increment();
             OrderOtherServiceImpl.LOGGER.error("[modifyOrder][Modify order Fail][Order not found][OrderId: {}]",orderId);
             return new Response<>(0, orderNotFound, null);
         } else {
@@ -348,6 +397,7 @@ public class OrderOtherServiceImpl implements OrderOtherService {
     public Response getOrderPrice(String orderId, HttpHeaders headers) {
         Optional<Order> op = orderOtherRepository.findById(orderId);
         if (!op.isPresent()) {
+            get_orderOther_price_orderId_ErrorCounter.increment();
             OrderOtherServiceImpl.LOGGER.error("[getOrderPrice][Get order price Fail][Order not found][OrderId: {}]",orderId);
             return new Response<>(0, orderNotFound, "-1.0");
         } else {
@@ -361,6 +411,7 @@ public class OrderOtherServiceImpl implements OrderOtherService {
     public Response payOrder(String orderId, HttpHeaders headers) {
         Optional<Order> op = orderOtherRepository.findById(orderId);
         if (!op.isPresent()) {
+            get_orderOther_orderPay_orderId_ErrorCounter.increment();
             OrderOtherServiceImpl.LOGGER.error("[payOrder][Pay order Fail][Order not found][OrderId: {}]",orderId);
             return new Response<>(0, orderNotFound, null);
         } else {
@@ -377,6 +428,7 @@ public class OrderOtherServiceImpl implements OrderOtherService {
         Optional<Order> op = orderOtherRepository.findById(orderId);
 
         if(!op.isPresent()) {
+            get_orderOther_orderId_ErrorCounter.increment();
             OrderOtherServiceImpl.LOGGER.error("[getOrderById][Get Order By ID Fail][Order not found][OrderId: {}]",orderId);
             return new Response<>(0, orderNotFound, null);
         } else {
@@ -417,6 +469,7 @@ public class OrderOtherServiceImpl implements OrderOtherService {
         String orderUuid = UUID.fromString(orderId).toString();
         Optional<Order> op = orderOtherRepository.findById(orderUuid);
         if(!op.isPresent()) {
+            delete_orderOther_orderId_ErrorCounter.increment();
             OrderOtherServiceImpl.LOGGER.error("[deleteOrder][Delete order Fail][Order not found][OrderId: {}]",orderId);
             return new Response<>(0, "Order Not Exist.", null);
         } else {
@@ -432,6 +485,7 @@ public class OrderOtherServiceImpl implements OrderOtherService {
         OrderOtherServiceImpl.LOGGER.info("[addNewOrder][Admin Add Order][Ready to Add Order]");
         ArrayList<Order> accountOrders = orderOtherRepository.findByAccountId(order.getAccountId());
         if (accountOrders.contains(order)) {
+            post_orderOther_admin_ErrorCounter.increment();
             OrderOtherServiceImpl.LOGGER.error("[addNewOrder][Admin Add Order Fail][Order already exists][OrderId: {}]",order.getId());
             return new Response<>(0, "Order already exist", null);
         } else {
@@ -448,6 +502,7 @@ public class OrderOtherServiceImpl implements OrderOtherService {
 
         Optional<Order> op = orderOtherRepository.findById(order.getId());
         if(!op.isPresent()) {
+            put_orderOther_admin_ErrorCounter.increment();
             OrderOtherServiceImpl.LOGGER.error("[updateOrder][Admin Update Order Fail][Order not found][OrderId: {}]",order.getId());
             return new Response<>(0, orderNotFound, null);
         } else {

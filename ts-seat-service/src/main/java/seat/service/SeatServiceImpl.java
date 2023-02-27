@@ -1,6 +1,9 @@
 package seat.service;
 
 import edu.fudan.common.util.Response;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tags;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import edu.fudan.common.entity.*;
 
+import javax.annotation.PostConstruct;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
@@ -25,6 +29,23 @@ import java.util.Set;
  */
 @Service
 public class SeatServiceImpl implements SeatService {
+
+    // 看起来不会有业务上的错误，因为如果查不到票会再生成，所以此处的errorCounter都没使用。
+    private Counter post_seats_ErrorCounter;
+    private Counter post_seats_left_tickets_ErrorCounter;
+
+    @Autowired
+    private MeterRegistry meterRegistry;
+
+    @PostConstruct
+    public void init() {
+        Tags tags = Tags.of("service", "ts-seat-service");
+        meterRegistry.config().commonTags(tags);
+        post_seats_ErrorCounter = Counter.builder("request.post.seats.error").register(meterRegistry);
+        post_seats_left_tickets_ErrorCounter = Counter.builder("request.post.seats.left_tickets.error").register(meterRegistry);
+    }
+
+
     @Autowired
     RestTemplate restTemplate;
 
@@ -36,6 +57,7 @@ public class SeatServiceImpl implements SeatService {
     private String getServiceUrl(String serviceName) {
         return "http://" + serviceName;
     }
+
 
     @Override
     public Response distributeSeat(Seat seatRequest, HttpHeaders headers) {

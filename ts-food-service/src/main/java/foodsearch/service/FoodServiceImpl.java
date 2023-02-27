@@ -9,6 +9,9 @@ import edu.fudan.common.entity.Route;
 import foodsearch.entity.*;
 import foodsearch.mq.RabbitSend;
 import foodsearch.repository.FoodOrderRepository;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tags;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
+import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -31,6 +35,30 @@ import java.util.stream.Collectors;
 
 @Service
 public class FoodServiceImpl implements FoodService {
+
+    private Counter get_orders_ErrorCounter;
+    private Counter post_orders_ErrorCounter;
+    private Counter post_createOrderBatch_ErrorCounter;
+    private Counter put_orders_ErrorCounter;
+    private Counter delete_orders_orderId_ErrorCounter;
+    private Counter get_orders_orderId_ErrorCounter;
+    private Counter get_foods_date_startStation_endStation_tripId_ErrorCounter;
+
+    @Autowired
+    private MeterRegistry meterRegistry;
+
+    @PostConstruct
+    public void init() {
+        Tags tags = Tags.of("service", "ts-food-service");
+        meterRegistry.config().commonTags(tags);
+        get_orders_ErrorCounter = Counter.builder("request.get.orders.error").register(meterRegistry);
+        post_orders_ErrorCounter = Counter.builder("request.post.orders.error").register(meterRegistry);
+        post_createOrderBatch_ErrorCounter = Counter.builder("request.post.createOrderBatch.error").register(meterRegistry);
+        put_orders_ErrorCounter = Counter.builder("request.put.orders.error").register(meterRegistry);
+        delete_orders_orderId_ErrorCounter = Counter.builder("request.delete.orders.orderId.error").register(meterRegistry);
+        get_orders_orderId_ErrorCounter = Counter.builder("request.get.orders.orderId.error").register(meterRegistry);
+        get_foods_date_startStation_endStation_tripId_ErrorCounter = Counter.builder("request.get.foods.date.startStation.endStation.tripId.error").register(meterRegistry);
+    }
 
     @Autowired
     private RestTemplate restTemplate;
@@ -69,6 +97,7 @@ public class FoodServiceImpl implements FoodService {
             }
         }
         if (error) {
+            post_createOrderBatch_ErrorCounter.increment();
             return new Response<>(0, "Order Id " + errorOrderId + "Existed", null);
         }
 
@@ -103,6 +132,7 @@ public class FoodServiceImpl implements FoodService {
             try {
                 sender.send(deliveryJson);
             } catch (Exception e) {
+                post_createOrderBatch_ErrorCounter.increment();
                 LOGGER.error("[createFoodOrdersInBatch][AddFoodOrder][send delivery info to mq error][exception: {}]", e.toString());
             }
         }
@@ -115,6 +145,7 @@ public class FoodServiceImpl implements FoodService {
 
         FoodOrder fo = foodOrderRepository.findByOrderId(addFoodOrder.getOrderId());
         if (fo != null) {
+            post_orders_ErrorCounter.increment();
             FoodServiceImpl.LOGGER.error("[createFoodOrder][AddFoodOrder][Order Id Has Existed][OrderId: {}]", addFoodOrder.getOrderId());
             return new Response<>(0, "Order Id Has Existed.", null);
         } else {
@@ -142,6 +173,7 @@ public class FoodServiceImpl implements FoodService {
             try {
                 sender.send(deliveryJson);
             } catch (Exception e) {
+                post_orders_ErrorCounter.increment();
                 LOGGER.error("[createFoodOrder][AddFoodOrder][send delivery info to mq error][exception: {}]", e.toString());
             }
 
@@ -154,6 +186,7 @@ public class FoodServiceImpl implements FoodService {
     public Response deleteFoodOrder(String orderId, HttpHeaders headers) {
         FoodOrder foodOrder = foodOrderRepository.findByOrderId(UUID.fromString(orderId).toString());
         if (foodOrder == null) {
+            delete_orders_orderId_ErrorCounter.increment();
             FoodServiceImpl.LOGGER.error("[deleteFoodOrder][Cancel FoodOrder][Order Id Is Non-Existent][orderId: {}]", orderId);
             return new Response<>(0, orderIdNotExist, null);
         } else {
@@ -170,6 +203,7 @@ public class FoodServiceImpl implements FoodService {
         if (foodOrders != null && !foodOrders.isEmpty()) {
             return new Response<>(1, success, foodOrders);
         } else {
+            get_orders_ErrorCounter.increment();
             FoodServiceImpl.LOGGER.error("[findAllFoodOrder][Find all food order error: {}]", "No Content");
             return new Response<>(0, "No Content", null);
         }
@@ -180,6 +214,7 @@ public class FoodServiceImpl implements FoodService {
     public Response updateFoodOrder(FoodOrder updateFoodOrder, HttpHeaders headers) {
         FoodOrder fo = foodOrderRepository.findById(updateFoodOrder.getId()).orElse(null);
         if (fo == null) {
+            put_orders_ErrorCounter.increment();
             FoodServiceImpl.LOGGER.info("[updateFoodOrder][Update FoodOrder][Order Id Is Non-Existent][orderId: {}]", updateFoodOrder.getOrderId());
             return new Response<>(0, orderIdNotExist, null);
         } else {
@@ -203,6 +238,7 @@ public class FoodServiceImpl implements FoodService {
             FoodServiceImpl.LOGGER.info("[findByOrderId][Find Order by id Success][orderId: {}]", orderId);
             return new Response<>(1, success, fo);
         } else {
+            get_orders_orderId_ErrorCounter.increment();
             FoodServiceImpl.LOGGER.warn("[findByOrderId][Find Order by id][Order Id Is Non-Existent][orderId: {}]", orderId);
             return new Response<>(0, orderIdNotExist, null);
         }
@@ -215,6 +251,7 @@ public class FoodServiceImpl implements FoodService {
         AllTripFood allTripFood = new AllTripFood();
 
         if (null == tripId || tripId.length() <= 2) {
+            get_foods_date_startStation_endStation_tripId_ErrorCounter.increment();
             FoodServiceImpl.LOGGER.error("[getAllFood][Get the Get Food Request Failed][Trip id is not suitable][date: {}, tripId: {}]", date, tripId);
             return new Response<>(0, "Trip id is not suitable", null);
         }
@@ -241,6 +278,7 @@ public class FoodServiceImpl implements FoodService {
             trainFoodList = trainFoodListResult;
             FoodServiceImpl.LOGGER.info("[getAllFood][Get Train Food List!]");
         } else {
+            get_foods_date_startStation_endStation_tripId_ErrorCounter.increment();
             FoodServiceImpl.LOGGER.error("[getAllFood][reGetTrainFoodListResult][Get the Get Food Request Failed!][date: {}, tripId: {}]", date, tripId);
             return new Response<>(0, "Get the Get Food Request Failed!", null);
         }
@@ -298,10 +336,12 @@ public class FoodServiceImpl implements FoodService {
                     foodStoreListMap.put(station, res);
                 }
             } else {
+                get_foods_date_startStation_endStation_tripId_ErrorCounter.increment();
                 FoodServiceImpl.LOGGER.error("[getAllFood][Get the Get Food Request Failed!][foodStoresListResult is null][date: {}, tripId: {}]", date, tripId);
                 return new Response<>(0, "Get All Food Failed", allTripFood);
             }
         } else {
+            get_foods_date_startStation_endStation_tripId_ErrorCounter.increment();
             FoodServiceImpl.LOGGER.error("[getAllFood][Get the Get Food Request Failed!][station status error][date: {}, tripId: {}]", date, tripId);
             return new Response<>(0, "Get All Food Failed", allTripFood);
         }

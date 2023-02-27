@@ -4,6 +4,9 @@ import edu.fudan.common.entity.TravelInfo;
 import edu.fudan.common.entity.TripAllDetailInfo;
 import edu.fudan.common.entity.TripInfo;
 import edu.fudan.common.entity.TripResponse;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tags;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +20,7 @@ import edu.fudan.common.entity.TravelInfo;
 import travel.entity.*;
 import travel.service.TravelService;
 
+import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 
 import static org.springframework.http.ResponseEntity.ok;
@@ -102,6 +106,19 @@ public class TravelController {
         return ok(travelService.delete(tripId, headers));
     }
 
+    @Autowired
+    private MeterRegistry meterRegistry;
+    private Counter post_trips_left_ErrorCounter;
+    private Counter post_trips_left_parallel_ErrorCounter;
+
+    @PostConstruct
+    public void init() {
+        Tags tags = Tags.of("service", "ts-travel-service");
+        meterRegistry.config().commonTags(tags);
+        post_trips_left_ErrorCounter = Counter.builder("request.post.trips.left.error").register(meterRegistry);
+        post_trips_left_parallel_ErrorCounter = Counter.builder("request.post.trips.left.parallel.error").register(meterRegistry);
+    }
+
     /**
      * Return Trips and the remaining tickets
      *
@@ -117,6 +134,7 @@ public class TravelController {
                 info.getDepartureTime() == null) {
             TravelController.LOGGER.info("[query][Travel Query Fail][Something null]");
             ArrayList<TripResponse> errorList = new ArrayList<>();
+            post_trips_left_ErrorCounter.increment();
             return ok(errorList);
         }
         TravelController.LOGGER.info("[query][Query TripResponse]");
@@ -138,10 +156,11 @@ public class TravelController {
                 info.getDepartureTime() == null) {
             TravelController.LOGGER.info("[queryInParallel][Travel Query Fail][Something null]");
             ArrayList<TripResponse> errorList = new ArrayList<>();
+            post_trips_left_parallel_ErrorCounter.increment();
             return ok(errorList);
         }
         TravelController.LOGGER.info("[queryInParallel][Query TripResponse]");
-        return ok(travelService.queryInParallel(info, headers));
+        return ok(travelService.queryInParallel(info, headers, post_trips_left_parallel_ErrorCounter));
     }
 
     /**

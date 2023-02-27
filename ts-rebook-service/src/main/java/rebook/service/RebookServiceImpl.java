@@ -7,6 +7,9 @@ import edu.fudan.common.entity.TripResponse;
 import edu.fudan.common.util.JsonUtils;
 import edu.fudan.common.util.Response;
 import edu.fudan.common.util.StringUtils;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tags;
 import org.apache.tomcat.jni.Time;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,6 +25,7 @@ import org.springframework.web.client.RestTemplate;
 import edu.fudan.common.entity.*;
 import rebook.entity.*;
 
+import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
 import java.util.Calendar;
 import java.util.Date;
@@ -32,6 +36,20 @@ import java.util.List;
  */
 @Service
 public class RebookServiceImpl implements RebookService {
+
+    private Counter post_rebook_difference_ErrorCounter;
+    private Counter post_rebook_ErrorCounter;
+
+    @Autowired
+    private MeterRegistry meterRegistry;
+
+    @PostConstruct
+    public void init() {
+        Tags tags = Tags.of("service", "ts-rebook-service");
+        meterRegistry.config().commonTags(tags);
+        post_rebook_difference_ErrorCounter = Counter.builder("request.post.rebook.difference.error").register(meterRegistry);
+        post_rebook_ErrorCounter = Counter.builder("request.post.rebook.error").register(meterRegistry);
+    }
 
     @Autowired
     private RestTemplate restTemplate;
@@ -52,9 +70,11 @@ public class RebookServiceImpl implements RebookService {
         if (queryOrderResult.getStatus() == 1) {
             if (queryOrderResult.getData().getStatus() != 1) {
                 RebookServiceImpl.LOGGER.warn("[rebook][Rebook warn][Order not suitable to rebook][OrderId: {}]",info.getOrderId());
+                post_rebook_ErrorCounter.increment();
                 return new Response<>(0, "you order not suitable to rebook!", null);
             }
         } else {
+            post_rebook_ErrorCounter.increment();
             RebookServiceImpl.LOGGER.warn("[rebook][Rebook warn][Order not found][OrderId: {}]",info.getOrderId());
             return new Response(0, "order not found", null);
         }
@@ -62,23 +82,28 @@ public class RebookServiceImpl implements RebookService {
         Order order = queryOrderResult.getData();
         int status = order.getStatus();
         if (status == OrderStatus.NOTPAID.getCode()) {
+            post_rebook_ErrorCounter.increment();
             RebookServiceImpl.LOGGER.warn("[rebook][Rebook warn][Order not paid][OrderId: {}]",info.getOrderId());
             return new Response<>(0, "You haven't paid the original ticket!", null);
         } else if (status == OrderStatus.PAID.getCode()) {
             // do nothing
         } else if (status == OrderStatus.CHANGE.getCode()) {
+            post_rebook_ErrorCounter.increment();
             RebookServiceImpl.LOGGER.warn("[rebook][Rebook warn][Order can't change twice][OrderId: {}]",info.getOrderId());
             return new Response<>(0, "You have already changed your ticket and you can only change one time.", null);
         } else if (status == OrderStatus.COLLECTED.getCode()) {
+            post_rebook_ErrorCounter.increment();
             RebookServiceImpl.LOGGER.warn("[rebook][Rebook warn][Order already collected][OrderId: {}]",info.getOrderId());
             return new Response<>(0, "You have already collected your ticket and you can change it now.", null);
         } else {
+            post_rebook_ErrorCounter.increment();
             RebookServiceImpl.LOGGER.warn("[rebook][Rebook warn][Order can't change][OrderId: {}]",info.getOrderId());
             return new Response<>(0, "You can't change your ticket.", null);
         }
 
         //Check the current time and the bus time of the old order, and judge whether the ticket can be changed according to the time. The ticket cannot be changed after two hours.
         if (!checkTime(order.getTravelDate(), order.getTravelTime())) {
+            post_rebook_ErrorCounter.increment();
             RebookServiceImpl.LOGGER.warn("[rebook][Rebook warn][Order beyond change time][OrderId: {}]",info.getOrderId());
             return new Response<>(0, "You can only change the ticket before the train start or within 2 hours after the train start.", null);
         }
@@ -92,17 +117,20 @@ public class RebookServiceImpl implements RebookService {
         gtdi.setTripId(info.getTripId());
         Response<TripAllDetail> gtdr = getTripAllDetailInformation(gtdi, info.getTripId(), httpHeaders);
         if (gtdr.getStatus() == 0) {
+            post_rebook_ErrorCounter.increment();
             RebookServiceImpl.LOGGER.warn("[rebook][Rebook warn][Trip detail not found][OrderId: {}]",info.getOrderId());
             return new Response<>(0, gtdr.getMsg(), null);
         } else {
             TripResponse tripResponse = gtdr.getData().getTripResponse();
             if (info.getSeatType() == SeatClass.FIRSTCLASS.getCode()) {
                 if (tripResponse.getConfortClass() <= 0) {
+                    post_rebook_ErrorCounter.increment();
                     RebookServiceImpl.LOGGER.warn("[rebook][Rebook warn][Seat Not Enough][OrderId: {},SeatType: {}]",info.getOrderId(),info.getSeatType());
                     return new Response<>(0, "Seat Not Enough", null);
                 }
             } else {
                 if (tripResponse.getEconomyClass() == SeatClass.SECONDCLASS.getCode() && tripResponse.getConfortClass() <= 0) {
+                    post_rebook_ErrorCounter.increment();
                     RebookServiceImpl.LOGGER.warn("[rebook][Rebook warn][Seat Not Enough][OrderId: {},SeatType: {}]",info.getOrderId(),info.getSeatType());
                     return new Response<>(0, "Seat Not Enough", null);
                 }
@@ -125,6 +153,7 @@ public class RebookServiceImpl implements RebookService {
             //Refund the difference
             String difference = priceOld.subtract(priceNew).toString();
             if (!drawBackMoney(info.getLoginId(), difference, httpHeaders)) {
+                post_rebook_ErrorCounter.increment();
                 RebookServiceImpl.LOGGER.warn("[rebook][Rebook warn][Can't draw back the difference money][OrderId: {},LoginId: {},difference: {}]",info.getOrderId(),info.getLoginId(),difference);
                 return new Response<>(0, "Can't draw back the difference money, please try again!", null);
             }
@@ -138,6 +167,7 @@ public class RebookServiceImpl implements RebookService {
             String difference = priceNew.subtract(priceOld).toString();
             Order orderMoneyDifference = new Order();
             orderMoneyDifference.setDifferenceMoney(difference);
+            post_rebook_ErrorCounter.increment();
             return new Response<>(2, "Please pay the different money!", orderMoneyDifference);
         }
     }
@@ -177,6 +207,7 @@ public class RebookServiceImpl implements RebookService {
             return updateOrder(order, info, gtdr, ticketPrice, httpHeaders);
         } else {
             RebookServiceImpl.LOGGER.warn("[payDifference][Pay difference warn][Can't pay the difference money][OrderId: {},LoginId: {},TripId: {}]",info.getOrderId(),info.getLoginId(),info.getTripId());
+            post_rebook_difference_ErrorCounter.increment();
             return new Response<>(0, "Can't pay the difference,please try again", null);
         }
     }
@@ -224,6 +255,7 @@ public class RebookServiceImpl implements RebookService {
                 return new Response<>(1, "Success!", order);
             } else {
                 RebookServiceImpl.LOGGER.error("[updateOrder][Update order error][OrderId: {},TripId: {}]",info.getOrderId(),info.getTripId());
+                post_rebook_ErrorCounter.increment();
                 return new Response<>(0, "Can't update Order!", null);
             }
         } else {

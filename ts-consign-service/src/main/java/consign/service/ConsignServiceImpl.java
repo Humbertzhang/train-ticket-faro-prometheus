@@ -4,6 +4,9 @@ import consign.entity.ConsignRecord;
 import consign.entity.Consign;
 import consign.repository.ConsignRepository;
 import edu.fudan.common.util.Response;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tags;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +21,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import javax.annotation.PostConstruct;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -27,6 +31,27 @@ import java.util.UUID;
  */
 @Service
 public class ConsignServiceImpl implements ConsignService {
+
+    private Counter post_consigns_ErrorCounter;
+    private Counter put_consigns_ErrorCounter;
+    private Counter get_consigns_account_id_ErrorCounter;
+    private Counter get_consigns_order_id_ErrorCounter;
+    private Counter get_consigns_consignee_ErrorCounter;
+
+    @Autowired
+    private MeterRegistry meterRegistry;
+
+    @PostConstruct
+    public void init() {
+        Tags tags = Tags.of("service", "ts-consign-service");
+        meterRegistry.config().commonTags(tags);
+        post_consigns_ErrorCounter = Counter.builder("request.post.consigns.error").register(meterRegistry);
+        put_consigns_ErrorCounter = Counter.builder("request.put.consigns.error").register(meterRegistry);
+        get_consigns_account_id_ErrorCounter = Counter.builder("request.get.consigns.account.id.error").register(meterRegistry);
+        get_consigns_order_id_ErrorCounter = Counter.builder("request.get.consigns.order.id.error").register(meterRegistry);
+        get_consigns_consignee_ErrorCounter = Counter.builder("request.get.consigns.consignee.error").register(meterRegistry);
+    }
+
     @Autowired
     ConsignRepository repository;
 
@@ -121,6 +146,7 @@ public class ConsignServiceImpl implements ConsignService {
         if (consignRecords != null && !consignRecords.isEmpty()) {
             return new Response<>(1, "Find consign by account id success", consignRecords);
         }else {
+            get_consigns_account_id_ErrorCounter.increment();
             LOGGER.warn("[queryByAccountId][No Content according to accountId][accountId: {}]", accountId);
             return new Response<>(0, "No Content according to accountId", null);
         }
@@ -132,6 +158,7 @@ public class ConsignServiceImpl implements ConsignService {
         if (consignRecords != null ) {
             return new Response<>(1, "Find consign by order id success", consignRecords);
         }else {
+            get_consigns_order_id_ErrorCounter.increment();
             LOGGER.warn("[queryByOrderId][No Content according to orderId][orderId: {}]", orderId);
             return new Response<>(0, "No Content according to order id", null);
         }
@@ -143,6 +170,7 @@ public class ConsignServiceImpl implements ConsignService {
         if (consignRecords != null && !consignRecords.isEmpty()) {
             return new Response<>(1, "Find consign by consignee success", consignRecords);
         }else {
+            get_consigns_consignee_ErrorCounter.increment();
             LOGGER.warn("[queryByConsignee][No Content according to consignee][consignee: {}]", consignee);
             return new Response<>(0, "No Content according to consignee", null);
         }

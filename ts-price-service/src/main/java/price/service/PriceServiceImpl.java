@@ -1,6 +1,9 @@
 package price.service;
 
 import edu.fudan.common.util.Response;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tags;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +12,7 @@ import org.springframework.stereotype.Service;
 import price.entity.PriceConfig;
 import price.repository.PriceConfigRepository;
 
+import javax.annotation.PostConstruct;
 import java.util.*;
 
 
@@ -17,6 +21,29 @@ import java.util.*;
  */
 @Service
 public class PriceServiceImpl implements PriceService {
+
+    private Counter get_prices_routeId_trainType_ErrorCounter;
+    private Counter post_prices_byRouteIdsAndTrainTypes_ErrorCounter;
+    private Counter get_prices_ErrorCounter;
+    private Counter post_prices_ErrorCounter;
+    private Counter delete_prices_pricesId_ErrorCounter;
+    private Counter put_prices_ErrorCounter;
+
+    @Autowired
+    private MeterRegistry meterRegistry;
+
+    @PostConstruct
+    public void init() {
+        Tags tags = Tags.of("service", "ts-price-service");
+        meterRegistry.config().commonTags(tags);
+        get_prices_routeId_trainType_ErrorCounter = Counter.builder("request.get.prices.routeId.trainType.error").register(meterRegistry);
+        post_prices_byRouteIdsAndTrainTypes_ErrorCounter = Counter.builder("request.post.prices.byRouteIdsAndTrainTypes.error").register(meterRegistry);
+        get_prices_ErrorCounter = Counter.builder("request.get.prices.error").register(meterRegistry);
+        post_prices_ErrorCounter = Counter.builder("request.post.prices.error").register(meterRegistry);
+        delete_prices_pricesId_ErrorCounter = Counter.builder("request.delete.prices.pricesId.error").register(meterRegistry);
+        put_prices_ErrorCounter = Counter.builder("request.put.prices.error").register(meterRegistry);
+    }
+
 
     @Autowired(required=true)
     private PriceConfigRepository priceConfigRepository;
@@ -73,6 +100,7 @@ public class PriceServiceImpl implements PriceService {
         //PriceServiceImpl.LOGGER.info("[findByRouteIdAndTrainType]");
 
         if (priceConfig == null) {
+            get_prices_routeId_trainType_ErrorCounter.increment();
             PriceServiceImpl.LOGGER.warn("[findByRouteIdAndTrainType][Find by route and train type warn][PricrConfig not found][RouteId: {}, TrainType: {}]",routeId,trainType);
             return new Response<>(0, noThatConfig, null);
         } else {
@@ -98,6 +126,7 @@ public class PriceServiceImpl implements PriceService {
             }
         }
         if (pcMap == null) {
+            post_prices_byRouteIdsAndTrainTypes_ErrorCounter.increment();
             PriceServiceImpl.LOGGER.warn("[findByRouteIdsAndTrainTypes][Find by routes and train types warn][PricrConfig not found][RouteIds: {}, TrainTypes: {}]",routeIds,trainTypes);
             return new Response<>(0, noThatConfig, null);
         } else {
@@ -117,6 +146,7 @@ public class PriceServiceImpl implements PriceService {
             PriceServiceImpl.LOGGER.warn("[findAllPriceConfig][Find all price config warn][{}]","No Content");
             return new Response<>(1, "Success", list);
         } else {
+            get_prices_ErrorCounter.increment();
             return new Response<>(0, "No price config", null);
         }
 
@@ -126,6 +156,7 @@ public class PriceServiceImpl implements PriceService {
     public Response deletePriceConfig(String pcId, HttpHeaders headers) {
         Optional<PriceConfig> op = priceConfigRepository.findById(pcId);
         if (!op.isPresent()) {
+            delete_prices_pricesId_ErrorCounter.increment();
             PriceServiceImpl.LOGGER.error("[deletePriceConfig][Delete price config error][Price config not found][PriceConfigId: {}]",pcId);
             return new Response<>(0, noThatConfig, null);
         } else {
@@ -139,6 +170,7 @@ public class PriceServiceImpl implements PriceService {
     public Response updatePriceConfig(PriceConfig c, HttpHeaders headers) {
         Optional<PriceConfig> op = priceConfigRepository.findById(c.getId());
         if (!op.isPresent()) {
+            put_prices_ErrorCounter.increment();
             PriceServiceImpl.LOGGER.error("[updatePriceConfig][Update price config error][Price config not found][PriceConfigId: {}]",c.getId());
             return new Response<>(0, noThatConfig, null);
         } else {

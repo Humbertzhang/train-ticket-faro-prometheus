@@ -2,6 +2,9 @@ package execute.serivce;
 
 import edu.fudan.common.util.Response;
 import edu.fudan.common.entity.*;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tags;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import javax.annotation.PostConstruct;
 import java.util.List;
 
 /**
@@ -23,6 +27,20 @@ import java.util.List;
  */
 @Service
 public class ExecuteServiceImpl implements ExecuteService {
+
+    private Counter get_execute_execute_orderId_ErrorCounter;
+    private Counter get_execute_collected_orderId_ErrorCounter;
+
+    @Autowired
+    private MeterRegistry meterRegistry;
+
+    @PostConstruct
+    public void init() {
+        Tags tags = Tags.of("service", "ts-execute-service");
+        meterRegistry.config().commonTags(tags);
+        get_execute_execute_orderId_ErrorCounter = Counter.builder("request.get.execute.execute.orderId.error").register(meterRegistry);
+        get_execute_collected_orderId_ErrorCounter = Counter.builder("request.get.execute.collected.orderId.error").register(meterRegistry);
+    }
 
     @Autowired
     private RestTemplate restTemplate;
@@ -48,6 +66,7 @@ public class ExecuteServiceImpl implements ExecuteService {
             order =  resultFromOrder.getData();
             //2.Check if the order can come in
             if (order.getStatus() != OrderStatus.COLLECTED.getCode()) {
+                get_execute_execute_orderId_ErrorCounter.increment();
                 LOGGER.error("[ticketExecute][getOrderByIdFromOrder][ticket execute error: {}][orderId: {}]", orderStatusWrong, orderId);
                 return new Response<>(0, orderStatusWrong, null);
             }
@@ -57,6 +76,7 @@ public class ExecuteServiceImpl implements ExecuteService {
             if (resultExecute.getStatus() == 1) {
                 return new Response<>(1, "Success.", null);
             } else {
+                get_execute_execute_orderId_ErrorCounter.increment();
                 LOGGER.error("[ticketExecute][executeOrder][executeOrder error: {}][orderId: {}]", resultExecute.getMsg(), orderId);
                 return new Response<>(0, resultExecute.getMsg(), null);
             }
@@ -66,6 +86,7 @@ public class ExecuteServiceImpl implements ExecuteService {
                 order =   resultFromOrder.getData();
                 //2.Check if the order can come in
                 if (order.getStatus() != OrderStatus.COLLECTED.getCode()) {
+                    get_execute_execute_orderId_ErrorCounter.increment();
                     LOGGER.error("[ticketExecute][getOrderByIdFromOrderOther][ticket execute error: {}][orderId: {}]", orderStatusWrong, orderId);
                     return new Response<>(0, orderStatusWrong, null);
                 }
@@ -75,10 +96,12 @@ public class ExecuteServiceImpl implements ExecuteService {
                 if (resultExecute.getStatus() == 1) {
                     return new Response<>(1, "Success", null);
                 } else {
+                    get_execute_execute_orderId_ErrorCounter.increment();
                     LOGGER.error("[ticketExecute][executeOrderOther][executeOrderOther error: {}][orderId: {}]", resultExecute.getMsg(), orderId);
                     return new Response<>(0, resultExecute.getMsg(), null);
                 }
             } else {
+                get_execute_execute_orderId_ErrorCounter.increment();
                 LOGGER.error("[ticketExecute][getOrderByIdFromOrderOther][ticker execute error: {}][orderId: {}]", "Order Not Found", orderId);
                 return new Response<>(0, "Order Not Found", null);
             }
@@ -96,6 +119,7 @@ public class ExecuteServiceImpl implements ExecuteService {
             order =  resultFromOrder.getData();
             //2.Check if the order can come in
             if (order.getStatus() != OrderStatus.PAID.getCode() && order.getStatus() != OrderStatus.CHANGE.getCode()) {
+                get_execute_collected_orderId_ErrorCounter.increment();
                 LOGGER.error("[ticketCollect][getOrderByIdFromOrder][ticket collect error: {}][orderId: {}]", orderStatusWrong, orderId);
                 return new Response<>(0, orderStatusWrong, null);
             }
@@ -105,6 +129,7 @@ public class ExecuteServiceImpl implements ExecuteService {
             if (resultExecute.getStatus() == 1) {
                 return new Response<>(1, "Success", null);
             } else {
+                get_execute_collected_orderId_ErrorCounter.increment();
                 LOGGER.error("[ticketCollect][executeOrder][ticket collect error: {}][orderId: {}]", resultExecute.getMsg(), orderId);
                 return new Response<>(0, resultExecute.getMsg(), null);
             }
@@ -114,6 +139,7 @@ public class ExecuteServiceImpl implements ExecuteService {
                 order = (Order) resultFromOrder.getData();
                 //2.Check if the order can come in
                 if (order.getStatus() != OrderStatus.PAID.getCode() && order.getStatus() != OrderStatus.CHANGE.getCode()) {
+                    get_execute_collected_orderId_ErrorCounter.increment();
                     LOGGER.error("[ticketCollect][getOrderByIdFromOrderOther][ticket collect error: {}][orderId: {}]", orderStatusWrong, orderId);
                     return new Response<>(0, orderStatusWrong, null);
                 }
@@ -122,10 +148,12 @@ public class ExecuteServiceImpl implements ExecuteService {
                 if (resultExecute.getStatus() == 1) {
                     return new Response<>(1, "Success.", null);
                 } else {
+                    get_execute_collected_orderId_ErrorCounter.increment();
                     LOGGER.error("[ticketCollect][executeOrderOther][ticket collect error: {}][orderId: {}]", resultExecute.getMsg(), orderId);
                     return new Response<>(0, resultExecute.getMsg(), null);
                 }
             } else {
+                get_execute_collected_orderId_ErrorCounter.increment();
                 LOGGER.error("[ticketCollect][getOrderByIdFromOrderOther][ticket collect error: {}][orderId: {}]", "Order Not Found", orderId);
                 return new Response<>(0, "Order Not Found", null);
             }

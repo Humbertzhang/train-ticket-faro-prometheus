@@ -4,6 +4,9 @@ import edu.fudan.common.entity.*;
 import edu.fudan.common.util.JsonUtils;
 import edu.fudan.common.util.Response;
 import edu.fudan.common.util.StringUtils;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tags;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import preserveOther.mq.RabbitSend;
 
+import javax.annotation.PostConstruct;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -26,6 +30,19 @@ import java.util.UUID;
  */
 @Service
 public class PreserveOtherServiceImpl implements PreserveOtherService {
+
+    private Counter post_preserveOther_ErrorCounter;
+
+    @Autowired
+    private MeterRegistry meterRegistry;
+
+    @PostConstruct
+    public void init() {
+        Tags tags = Tags.of("service", "ts-preserve-other-service");
+        meterRegistry.config().commonTags(tags);
+        post_preserveOther_ErrorCounter = Counter.builder("request.post.preserveOther.error").register(meterRegistry);
+    }
+
 
     @Autowired
     private RestTemplate restTemplate;
@@ -52,6 +69,7 @@ public class PreserveOtherServiceImpl implements PreserveOtherService {
         Response result = checkSecurity(oti.getAccountId(), httpHeaders);
 
         if (result.getStatus() == 0) {
+            post_preserveOther_ErrorCounter.increment();
             PreserveOtherServiceImpl.LOGGER.error("[preserve][Step 1][Check Security Fail][AccountId: {}]",oti.getAccountId());
             return new Response<>(0, result.getMsg(), null);
         }
@@ -61,6 +79,7 @@ public class PreserveOtherServiceImpl implements PreserveOtherService {
 
         Response<Contacts> gcr = getContactsById(oti.getContactsId(), httpHeaders);
         if (gcr.getStatus() == 0) {
+            post_preserveOther_ErrorCounter.increment();
             PreserveOtherServiceImpl.LOGGER.error("[preserve][Step 2][Find Contacts Fail][ContactsId: {},message: {}]",oti.getContactsId(),gcr.getMsg());
             return new Response<>(0, gcr.getMsg(), null);
         }
@@ -80,6 +99,7 @@ public class PreserveOtherServiceImpl implements PreserveOtherService {
         TripAllDetail gtdr = response.getData();
         //LOGGER.info("TripAllDetail : " + gtdr.toString());
         if (response.getStatus() == 0) {
+            post_preserveOther_ErrorCounter.increment();
             PreserveOtherServiceImpl.LOGGER.error("[preserve][Step 3][Check tickets num][Search For Trip Detail Information error][TripId: {}, message: {}]", gtdi.getTripId(), response.getMsg());
             return new Response<>(0, response.getMsg(), null);
         } else {
@@ -87,11 +107,13 @@ public class PreserveOtherServiceImpl implements PreserveOtherService {
             //LOGGER.info("TripResponse : " + tripResponse.toString());
             if (oti.getSeatType() == SeatClass.FIRSTCLASS.getCode()) {
                 if (tripResponse.getConfortClass() == 0) {
+                    post_preserveOther_ErrorCounter.increment();
                     PreserveOtherServiceImpl.LOGGER.warn("[preserve][Step 3][Check seat][Check seat is enough][TripId: {}]",oti.getTripId());
                     return new Response<>(0, "Seat Not Enough", null);
                 }
             } else {
                 if (tripResponse.getEconomyClass() == SeatClass.SECONDCLASS.getCode() && tripResponse.getConfortClass() == 0) {
+                    post_preserveOther_ErrorCounter.increment();
                     PreserveOtherServiceImpl.LOGGER.warn("[preserve][Step 3][Check seat][Check seat is Not enough][TripId: {}]",oti.getTripId());
                     return new Response<>(0, "Check Seat Not Enough", null);
                 }
@@ -172,6 +194,7 @@ public class PreserveOtherServiceImpl implements PreserveOtherService {
 
         Response<Order> cor = createOrder(order, httpHeaders);
         if (cor.getStatus() == 0) {
+            post_preserveOther_ErrorCounter.increment();
             PreserveOtherServiceImpl.LOGGER.error("[preserve][Step 4][Do Order][Create Order Fail][OrderId: {},  Reason: {}]", order.getId(), cor.getMsg());
             return new Response<>(0, cor.getMsg(), null);
         }
@@ -187,6 +210,7 @@ public class PreserveOtherServiceImpl implements PreserveOtherService {
             if (addAssuranceResult.getStatus() == 1) {
                 PreserveOtherServiceImpl.LOGGER.info("[preserve][Step 5][Buy Assurance][Preserve Buy Assurance Success]");
             } else {
+                post_preserveOther_ErrorCounter.increment();
                 PreserveOtherServiceImpl.LOGGER.warn("[preserve][Step 5][Buy Assurance][Buy Assurance Fail][assurance: {}, OrderId: {}]", oti.getAssurance(),cor.getData().getId());
                 returnResponse.setMsg("Success.But Buy Assurance Fail.");
             }
@@ -207,6 +231,7 @@ public class PreserveOtherServiceImpl implements PreserveOtherService {
             if (afor.getStatus() == 1) {
                 PreserveOtherServiceImpl.LOGGER.info("[preserve][Step 6][Buy Food][Buy Food Success]");
             } else {
+                post_preserveOther_ErrorCounter.increment();
                 PreserveOtherServiceImpl.LOGGER.error("[preserve][Step 6][Buy Food][Buy Food Fail][OrderId: {}]",cor.getData().getId());
                 returnResponse.setMsg("Success.But Buy Food Fail.");
             }
@@ -232,6 +257,7 @@ public class PreserveOtherServiceImpl implements PreserveOtherService {
             if (icresult.getStatus() == 1) {
                 PreserveOtherServiceImpl.LOGGER.info("[preserve][Step 7][Add Consign][Consign Success]");
             } else {
+                post_preserveOther_ErrorCounter.increment();
                 PreserveOtherServiceImpl.LOGGER.error("[preserve][Step 7][Add Consign][Preserve Consign Fail][OrderId: {}]", cor.getData().getId());
                 returnResponse.setMsg("Consign Fail.");
             }

@@ -2,6 +2,9 @@ package security.service;
 
 import edu.fudan.common.entity.OrderSecurity;
 import edu.fudan.common.util.Response;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tags;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +24,7 @@ import security.entity.SecurityConfig;
 import security.repository.SecurityRepository;
 
 
+import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -31,6 +35,27 @@ import java.util.UUID;
  */
 @Service
 public class SecurityServiceImpl implements SecurityService {
+
+    private Counter get_securityConfigs_ErrorCounter;
+    private Counter post_securityConfigs_ErrorCounter;
+    private Counter put_securityConfigs_ErrorCounter;
+    private Counter delete_securityConfigs_id_ErrorCounter;
+    private Counter get_securityConfigs_accountId_ErrorCounter;
+
+    @Autowired
+    private MeterRegistry meterRegistry;
+
+    @PostConstruct
+    public void init() {
+        Tags tags = Tags.of("service", "ts-security-service");
+        meterRegistry.config().commonTags(tags);
+        get_securityConfigs_ErrorCounter = Counter.builder("request.get.securityConfigs.error").register(meterRegistry);
+        post_securityConfigs_ErrorCounter = Counter.builder("request.post.securityConfigs.error").register(meterRegistry);
+        put_securityConfigs_ErrorCounter = Counter.builder("request.put.securityConfigs.error").register(meterRegistry);
+        delete_securityConfigs_id_ErrorCounter = Counter.builder("request.delete.securityConfigs.id.error").register(meterRegistry);
+        get_securityConfigs_accountId_ErrorCounter = Counter.builder("request.get.securityConfigs.accountId.error").register(meterRegistry);
+    }
+
 
     @Autowired
     private SecurityRepository securityRepository;
@@ -55,6 +80,7 @@ public class SecurityServiceImpl implements SecurityService {
         if (securityConfigs != null && !securityConfigs.isEmpty()) {
             return new Response<>(1, success, securityConfigs);
         }
+        get_securityConfigs_ErrorCounter.increment();
         SecurityServiceImpl.LOGGER.warn("[findAllSecurityConfig][Find all security config warn][{}]","No content");
         return new Response<>(0, "No Content", null);
     }
@@ -64,6 +90,7 @@ public class SecurityServiceImpl implements SecurityService {
         SecurityConfig sc = securityRepository.findByName(info.getName());
         if (sc != null) {
             SecurityServiceImpl.LOGGER.warn("[addNewSecurityConfig][Add new Security config warn][Security config already exist][SecurityConfigId: {},Name: {}]",sc.getId(),info.getName());
+            post_securityConfigs_ErrorCounter.increment();
             return new Response<>(0, "Security Config Already Exist", null);
         } else {
             SecurityConfig config = new SecurityConfig();
@@ -81,6 +108,7 @@ public class SecurityServiceImpl implements SecurityService {
         SecurityConfig sc = securityRepository.findById(info.getId()).orElse(null);
         if (sc == null) {
             SecurityServiceImpl.LOGGER.error("[modifySecurityConfig][Modify Security config error][Security config not found][SecurityConfigId: {},Name: {}]",info.getId(),info.getName());
+            put_securityConfigs_ErrorCounter.increment();
             return new Response<>(0, "Security Config Not Exist", null);
         } else {
             sc.setName(info.getName());
@@ -99,6 +127,7 @@ public class SecurityServiceImpl implements SecurityService {
         if (sc == null) {
             return new Response<>(1, success, id);
         } else {
+            delete_securityConfigs_id_ErrorCounter.increment();
             SecurityServiceImpl.LOGGER.error("[deleteSecurityConfig][Delete Security config error][Reason not clear][SecurityConfigId: {}]",id);
             return new Response<>(0, "Reason Not clear", id);
         }
@@ -121,6 +150,7 @@ public class SecurityServiceImpl implements SecurityService {
         int totalValidLine = Integer.parseInt(configMaxNotUse.getValue());
         if (orderInOneHour > oneHourLine || totalValidOrder > totalValidLine) {
             SecurityServiceImpl.LOGGER.warn("[check][Check Security config warn][Too much order in last one hour or too much valid order][AccountId: {}]",accountId);
+            get_securityConfigs_accountId_ErrorCounter.increment();
             return new Response<>(0, "Too much order in last one hour or too much valid order", accountId);
         } else {
             return new Response<>(1, "Success.r", accountId);

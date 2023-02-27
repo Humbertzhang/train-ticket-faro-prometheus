@@ -6,6 +6,9 @@ import edu.fudan.common.entity.*;
 import edu.fudan.common.util.JsonUtils;
 import edu.fudan.common.util.Response;
 import edu.fudan.common.util.StringUtils;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tags;
 import org.apache.skywalking.apm.toolkit.trace.TraceCrossThread;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,6 +28,7 @@ import travel.entity.Trip;
 import travel.entity.TripAllDetail;
 import travel.repository.TripRepository;
 
+import javax.annotation.PostConstruct;
 import javax.transaction.Transactional;
 import java.util.*;
 import java.util.concurrent.*;
@@ -34,6 +38,39 @@ import java.util.concurrent.*;
  */
 @Service
 public class TravelServiceImpl implements TravelService {
+
+    @Autowired
+    private MeterRegistry meterRegistry;
+
+    private Counter get_train_types_tripId_ErrorCounter;
+    private Counter get_routes_tripId_ErrorCounter;
+    private Counter post_trips_routes_ErrorCounter;
+    private Counter post_trips_ErrorCounter;
+    private Counter get_trips_tripId_ErrorCounter;
+    private Counter put_trips_ErrorCounter;
+    private Counter delete_trips_tripId_ErrorCounter;
+    private Counter post_trip_detail_ErrorCounter;
+    private Counter get_trips_ErrorCounter;
+    private Counter get_admin_trip_ErrorCounter;
+
+
+    @PostConstruct
+    public void init() {
+        Tags tags = Tags.of("service", "ts-travel-service");
+        meterRegistry.config().commonTags(tags);
+        get_train_types_tripId_ErrorCounter = Counter.builder("request.get.train_types.tripId.error").register(meterRegistry);
+        get_routes_tripId_ErrorCounter = Counter.builder("request.get.routes.tripId.error").register(meterRegistry);
+        post_trips_routes_ErrorCounter = Counter.builder("request.post.trips.routes.error").register(meterRegistry);
+        post_trips_ErrorCounter = Counter.builder("request.post.trips.error").register(meterRegistry);
+        get_trips_tripId_ErrorCounter = Counter.builder("request.get.trips.tripId.error").register(meterRegistry);
+        put_trips_ErrorCounter = Counter.builder("request.put.trips.error").register(meterRegistry);
+        delete_trips_tripId_ErrorCounter = Counter.builder("request.delete.trips.tripId.delete.error").register(meterRegistry);
+        post_trip_detail_ErrorCounter = Counter.builder("request.post.trip.detail.error").register(meterRegistry);
+        get_trips_ErrorCounter = Counter.builder("request.get.trips.error").register(meterRegistry);
+        get_admin_trip_ErrorCounter = Counter.builder("request.get.admin.trip.error").register(meterRegistry);
+    }
+
+
 
     @Autowired
     private TripRepository repository;
@@ -65,6 +102,7 @@ public class TravelServiceImpl implements TravelService {
             repository.save(trip);
             return new Response<>(1, "Create trip:" + ti.toString() + ".", null);
         } else {
+            post_trips_ErrorCounter.increment();
             TravelServiceImpl.LOGGER.error("[create][Create trip error][Trip already exists][TripId: {}]", info.getTripId());
             return new Response<>(1, "Trip " + info.getTripId().toString() + " already exists", null);
         }
@@ -85,6 +123,7 @@ public class TravelServiceImpl implements TravelService {
         if (route != null) {
             return new Response<>(1, success, route);
         } else {
+            get_routes_tripId_ErrorCounter.increment();
             TravelServiceImpl.LOGGER.error("[getRouteByTripId][Get route by Trip id error][Route not found][TripId: {}]", tripId);
             return new Response<>(0, noContent, null);
         }
@@ -100,9 +139,11 @@ public class TravelServiceImpl implements TravelService {
         } else {
             TravelServiceImpl.LOGGER.error("[getTrainTypeByTripId][Get Train Type by Trip id error][Trip not found][TripId: {}]", tripId);
         }
+
         if (trainType != null) {
             return new Response<>(1, success, trainType);
         } else {
+            get_train_types_tripId_ErrorCounter.increment();
             TravelServiceImpl.LOGGER.error("[getTrainTypeByTripId][Get Train Type by Trip id error][Train Type not found][TripId: {}]", tripId);
             return new Response<>(0, noContent, null);
         }
@@ -121,6 +162,7 @@ public class TravelServiceImpl implements TravelService {
         if (!tripList.isEmpty()) {
             return new Response<>(1, success, tripList);
         } else {
+            post_trips_routes_ErrorCounter.increment();
             TravelServiceImpl.LOGGER.warn("[getTripByRoute][Get trips by routes warn][Trip list][{}]", "No content");
             return new Response<>(0, noContent, null);
         }
@@ -134,6 +176,7 @@ public class TravelServiceImpl implements TravelService {
         if (trip != null) {
             return new Response<>(1, "Search Trip Success by Trip Id " + tripId, trip);
         } else {
+            get_trips_tripId_ErrorCounter.increment();
             TravelServiceImpl.LOGGER.error("[retrieve][Retrieve trip error][Trip not found][TripId: {}]", tripId);
             return new Response<>(0, "No Content according to tripId" + tripId, null);
         }
@@ -154,6 +197,7 @@ public class TravelServiceImpl implements TravelService {
             repository.save(t);
             return new Response<>(1, "Update trip:" + ti.toString(), t);
         } else {
+            put_trips_ErrorCounter.increment();
             TravelServiceImpl.LOGGER.error("[update][Update trip error][Trip not found][TripId: {}]", info.getTripId());
             return new Response<>(1, "Trip" + info.getTripId().toString() + "doesn 't exists", null);
         }
@@ -167,6 +211,7 @@ public class TravelServiceImpl implements TravelService {
             repository.deleteByTripId(ti);
             return new Response<>(1, "Delete trip:" + tripId + ".", tripId);
         } else {
+            delete_trips_tripId_ErrorCounter.increment();
             TravelServiceImpl.LOGGER.error("[delete][Delete trip error][Trip not found][TripId: {}]", tripId);
             return new Response<>(0, "Trip " + tripId + " doesn't exist.", null);
         }
@@ -254,7 +299,7 @@ public class TravelServiceImpl implements TravelService {
     }
 
     @Override
-    public Response queryInParallel(TripInfo info, HttpHeaders headers) {
+    public Response queryInParallel(TripInfo info, HttpHeaders headers, Counter errorCounter) {
         //Gets the start and arrival stations of the train number to query. The originating and arriving stations received here are both station names, so two requests need to be sent to convert to station ids
         String startPlaceName = info.getStartPlace();
         String endPlaceName = info.getEndPlace();
@@ -286,6 +331,7 @@ public class TravelServiceImpl implements TravelService {
         }
 
         if (list.isEmpty()) {
+            errorCounter.increment();
             return new Response<>(0, "No Trip info content", null);
         } else {
             return new Response<>(1, success, list);
@@ -301,6 +347,7 @@ public class TravelServiceImpl implements TravelService {
             gtdr.setTripResponse(null);
             gtdr.setTrip(null);
             TravelServiceImpl.LOGGER.error("[getTripAllDetailInfo][Get trip detail error][Trip not found][TripId: {}]", gtdi.getTripId());
+            post_trip_detail_ErrorCounter.increment();
             return new Response<>(0, "Trip not found", gtdr);
         } else {
             String startPlaceName = gtdi.getFrom();
@@ -310,6 +357,7 @@ public class TravelServiceImpl implements TravelService {
                 gtdr.setTripResponse(null);
                 gtdr.setTrip(null);
                 TravelServiceImpl.LOGGER.warn("[getTripAllDetailInfo][Get trip detail error][Tickets not found][start: {},end: {},time: {}]", startPlaceName, endPlaceName, gtdi.getTravelDate());
+                post_trip_detail_ErrorCounter.increment();
                 return new Response<>(0, "getTickets failed", gtdr);
             } else {
                 gtdr.setTripResponse(tripResponse);
@@ -472,6 +520,7 @@ public class TravelServiceImpl implements TravelService {
             return new Response<>(1, success, tripList);
         }
         TravelServiceImpl.LOGGER.warn("[queryAll][Query all trips warn][{}]", "No Content");
+        get_trips_ErrorCounter.increment();
         return new Response<>(0, noContent, null);
     }
 
@@ -577,6 +626,7 @@ public class TravelServiceImpl implements TravelService {
         if (!adminTrips.isEmpty()) {
             return new Response<>(1, success, adminTrips);
         } else {
+            get_admin_trip_ErrorCounter.increment();
             TravelServiceImpl.LOGGER.warn("[adminQueryAll][Admin query all trips warn][{}]", "No Content");
             return new Response<>(0, noContent, null);
         }

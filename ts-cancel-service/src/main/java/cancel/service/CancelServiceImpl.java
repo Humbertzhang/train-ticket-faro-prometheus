@@ -7,6 +7,9 @@ import edu.fudan.common.entity.SeatClass;
 import edu.fudan.common.entity.User;
 import edu.fudan.common.util.Response;
 import edu.fudan.common.util.StringUtils;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tags;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +22,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import javax.annotation.PostConstruct;
 import java.text.DecimalFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -28,6 +32,19 @@ import java.util.Date;
  */
 @Service
 public class CancelServiceImpl implements CancelService {
+    private Counter get_cancel_refound_orderId_ErrorCounter;
+    private Counter get_cancel_orderId_loginId_ErrorCounter;
+
+    @Autowired
+    private MeterRegistry meterRegistry;
+
+    @PostConstruct
+    public void init() {
+        Tags tags = Tags.of("service", "ts-cancel-service");
+        meterRegistry.config().commonTags(tags);
+        get_cancel_refound_orderId_ErrorCounter = Counter.builder("request.get.cancel.refound.orderId.error").register(meterRegistry);
+        get_cancel_orderId_loginId_ErrorCounter = Counter.builder("request.get.cancel.orderId.loginId.error").register(meterRegistry);
+    }
 
     @Autowired
     private RestTemplate restTemplate;
@@ -91,11 +108,13 @@ public class CancelServiceImpl implements CancelService {
                     }
                     return new Response<>(1, "Success.", "test not null");
                 } else {
+                    get_cancel_refound_orderId_ErrorCounter.increment();
                     CancelServiceImpl.LOGGER.error("[cancelOrder][Cancel Order Failed][orderId: {}, Reason: {}]", orderId, changeOrderResult.getMsg());
                     return new Response<>(0, changeOrderResult.getMsg(), null);
                 }
 
             } else {
+                get_cancel_refound_orderId_ErrorCounter.increment();
                 CancelServiceImpl.LOGGER.info("[cancelOrder][Cancel Order, Order Status Not Permitted][loginId: {}, orderId: {}]", loginId, orderId);
                 return new Response<>(0, orderStatusCancelNotPermitted, null);
             }
@@ -126,14 +145,17 @@ public class CancelServiceImpl implements CancelService {
                         }
                         return new Response<>(1, "Success.", null);
                     } else {
+                        get_cancel_refound_orderId_ErrorCounter.increment();
                         CancelServiceImpl.LOGGER.error("[cancelOrder][Cancel Order Failed][orderId: {}, Reason: {}]", orderId, changeOrderResult.getMsg());
                         return new Response<>(0, "Fail.Reason:" + changeOrderResult.getMsg(), null);
                     }
                 } else {
+                    get_cancel_refound_orderId_ErrorCounter.increment();
                     CancelServiceImpl.LOGGER.warn("[cancelOrder][Cancel Order, Order Status Not Permitted][loginId: {}, orderId: {}]", loginId, orderId);
                     return new Response<>(0, orderStatusCancelNotPermitted, null);
                 }
             } else {
+                get_cancel_refound_orderId_ErrorCounter.increment();
                 CancelServiceImpl.LOGGER.warn("[cancelOrder][Cancel Order, Order Not Found][loginId: {}, orderId: {}]", loginId, orderId);
                 return new Response<>(0, "Order Not Found.", null);
             }
@@ -169,6 +191,7 @@ public class CancelServiceImpl implements CancelService {
                     return new Response<>(1, "Success. ", calculateRefund(order));
                 }
             } else {
+                get_cancel_refound_orderId_ErrorCounter.increment();
                 CancelServiceImpl.LOGGER.info("[calculateRefund][Cancel Order Refund Price Order.Cancel Not Permitted][orderId: {}]", orderId);
                 return new Response<>(0, "Order Status Cancel Not Permitted, Refound error", null);
             }
@@ -187,10 +210,12 @@ public class CancelServiceImpl implements CancelService {
                         return new Response<>(1, "Success", calculateRefund(order));
                     }
                 } else {
+                    get_cancel_refound_orderId_ErrorCounter.increment();
                     CancelServiceImpl.LOGGER.warn("[Cancel Order][Refund Price, Order Other. Cancel Not Permitted][orderId: {}]", orderId);
                     return new Response<>(0, orderStatusCancelNotPermitted, null);
                 }
             } else {
+                get_cancel_refound_orderId_ErrorCounter.increment();
                 CancelServiceImpl.LOGGER.error("[Cancel Order][Refund Price][Order not found][orderId: {}]", orderId);
                 return new Response<>(0, "Order Not Found", null);
             }

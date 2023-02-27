@@ -3,17 +3,42 @@ package consignprice.service;
 import consignprice.entity.ConsignPrice;
 import consignprice.repository.ConsignPriceConfigRepository;
 import edu.fudan.common.util.Response;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tags;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
+
 /**
  * @author fdse
  */
 @Service
 public class ConsignPriceServiceImpl implements ConsignPriceService {
+
+    //该服务只返回success
+
+    private Counter get_consignprice_weight_isWithinRegion_ErrorCounter;
+    private Counter get_consignprice_price_ErrorCounter;
+    private Counter get_consignprice_config_ErrorCounter;
+    private Counter post_consignprice_ErrorCounter;
+
+    @Autowired
+    private MeterRegistry meterRegistry;
+
+    @PostConstruct
+    public void init() {
+        Tags tags = Tags.of("service", "ts-consign-price-service");
+        meterRegistry.config().commonTags(tags);
+        get_consignprice_weight_isWithinRegion_ErrorCounter = Counter.builder("request.get.consignprice.weight.isWithinRegion.error").register(meterRegistry);
+        get_consignprice_price_ErrorCounter = Counter.builder("request.get.consignprice.price.error").register(meterRegistry);
+        get_consignprice_config_ErrorCounter = Counter.builder("request.get.consignprice.config.error").register(meterRegistry);
+        post_consignprice_ErrorCounter = Counter.builder("request.post.consignprice.error").register(meterRegistry);
+    }
 
     @Autowired
     private ConsignPriceConfigRepository repository;

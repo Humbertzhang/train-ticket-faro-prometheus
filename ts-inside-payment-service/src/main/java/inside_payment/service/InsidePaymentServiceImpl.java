@@ -6,6 +6,9 @@ import edu.fudan.common.util.Response;
 import inside_payment.entity.*;
 import inside_payment.repository.AddMoneyRepository;
 import inside_payment.repository.PaymentRepository;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tags;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +21,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
 import java.util.*;
 
@@ -26,6 +30,32 @@ import java.util.*;
  */
 @Service
 public class InsidePaymentServiceImpl implements InsidePaymentService {
+
+    private Counter post_inside_payment_ErrorCounter;
+    private Counter post_inside_payment_account_ErrorCounter;
+    private Counter get_inside_payment_userId_money_ErrorCounter;
+    private Counter get_inside_payment_payment_ErrorCounter;
+    private Counter get_inside_payment_account_ErrorCounter;
+    private Counter get_inside_payment_drawback_userId_money_ErrorCounter;
+    private Counter post_inside_payment_difference_ErrorCounter;
+    private Counter get_inside_payment_money_ErrorCounter;
+
+    @Autowired
+    private MeterRegistry meterRegistry;
+
+    @PostConstruct
+    public void init() {
+        Tags tags = Tags.of("service", "ts-inside-payment-service");
+        meterRegistry.config().commonTags(tags);
+        post_inside_payment_ErrorCounter = Counter.builder("request.post.inside_payment.error").register(meterRegistry);
+        post_inside_payment_account_ErrorCounter = Counter.builder("request.post.inside_payment.account.error").register(meterRegistry);
+        get_inside_payment_userId_money_ErrorCounter = Counter.builder("request.get.inside_payment.userId.money.error").register(meterRegistry);
+        get_inside_payment_payment_ErrorCounter = Counter.builder("request.get.inside_payment.payment.error").register(meterRegistry);
+        get_inside_payment_account_ErrorCounter = Counter.builder("request.get.inside_payment.account.error").register(meterRegistry);
+        get_inside_payment_drawback_userId_money_ErrorCounter = Counter.builder("request.get.inside_payment.drawback.userId.money.error").register(meterRegistry);
+        post_inside_payment_difference_ErrorCounter = Counter.builder("request.post.inside.payment.difference.error").register(meterRegistry);
+        get_inside_payment_money_ErrorCounter = Counter.builder("request.get.inside.payment.money.error").register(meterRegistry);
+    }
 
     @Autowired
     public AddMoneyRepository addMoneyRepository;
@@ -68,6 +98,7 @@ public class InsidePaymentServiceImpl implements InsidePaymentService {
         if (result.getStatus() == 1) {
             Order order = result.getData();
             if (order.getStatus() != OrderStatus.NOTPAID.getCode()) {
+                post_inside_payment_ErrorCounter.increment();
                 InsidePaymentServiceImpl.LOGGER.warn("[Inside Payment Service.pay][Order status Not allowed to Pay]");
                 return new Response<>(0, "Error. Order status Not allowed to Pay.", null);
             }
@@ -121,6 +152,7 @@ public class InsidePaymentServiceImpl implements InsidePaymentService {
                     setOrderStatus(info.getTripId(), info.getOrderId(), headers);
                     return new Response<>(1, "Payment Success " +    outsidePaySuccess.getMsg(), null);
                 } else {
+                    post_inside_payment_ErrorCounter.increment();
                     LOGGER.error("Payment failed: {}", outsidePaySuccess.getMsg());
                     return new Response<>(0, "Payment Failed:  " +  outsidePaySuccess.getMsg(), null);
                 }
@@ -133,6 +165,7 @@ public class InsidePaymentServiceImpl implements InsidePaymentService {
             return new Response<>(1, "Payment Success", null);
 
         } else {
+            post_inside_payment_ErrorCounter.increment();
             LOGGER.error("[Inside Payment Service.pay][Payment failed][Order not exists][orderId: {}]", info.getOrderId());
             return new Response<>(0, "Payment Failed, Order Not Exists", null);
         }
@@ -149,6 +182,7 @@ public class InsidePaymentServiceImpl implements InsidePaymentService {
             addMoneyRepository.save(addMoney);
             return new Response<>(1, "Create Account Success", null);
         } else {
+            post_inside_payment_account_ErrorCounter.increment();
             LOGGER.error("[createAccount][Create Account Failed][Account already Exists][userId: {}]", info.getUserId());
             return new Response<>(0, "Create Account Failed, Account already Exists", null);
         }
@@ -164,6 +198,7 @@ public class InsidePaymentServiceImpl implements InsidePaymentService {
             addMoneyRepository.save(addMoney);
             return new Response<>(1, "Add Money Success", null);
         } else {
+            get_inside_payment_userId_money_ErrorCounter.increment();
             LOGGER.error("Add Money Failed, userId: {}", userId);
             return new Response<>(0, "Add Money Failed", null);
         }
@@ -236,6 +271,7 @@ public class InsidePaymentServiceImpl implements InsidePaymentService {
         if (payments != null && !payments.isEmpty()) {
             return new Response<>(1, "Query Payment Success", payments);
         }else {
+            get_inside_payment_payment_ErrorCounter.increment();
             LOGGER.error("[queryPayment][Query payment failed][payment is null]");
             return new Response<>(0, "Query Payment Failed", null);
         }
@@ -251,6 +287,7 @@ public class InsidePaymentServiceImpl implements InsidePaymentService {
             addMoneyRepository.save(addMoney);
             return new Response<>(1, "Draw Back Money Success", null);
         } else {
+            get_inside_payment_drawback_userId_money_ErrorCounter.increment();
             LOGGER.error("[drawBack][Draw Back Money Failed][addMoneyRepository.findByUserId null][userId: {}]", userId);
             return new Response<>(0, "Draw Back Money Failed", null);
         }
@@ -306,6 +343,7 @@ public class InsidePaymentServiceImpl implements InsidePaymentService {
                 paymentRepository.save(payment);
                 return new Response<>(1, "Pay Difference Success", null);
             } else {
+                post_inside_payment_difference_ErrorCounter.increment();
                 LOGGER.error("[payDifference][Pay Difference Failed][outsidePaySuccess status not 1][orderId: {}]", info.getOrderId());
                 return new Response<>(0, "Pay Difference Failed", null);
             }
@@ -322,6 +360,7 @@ public class InsidePaymentServiceImpl implements InsidePaymentService {
         if (monies != null && !monies.isEmpty()) {
             return new Response<>(1, "Query Money Success", null);
         } else {
+            get_inside_payment_money_ErrorCounter.increment();
             LOGGER.error("[queryAddMoney][Query money failed][addMoneyRepository.findAll null]");
             return new Response<>(0, "Query money failed", null);
         }

@@ -37,8 +37,8 @@ public class VerifyCodeController {
     public void init() {
         Tags tags = Tags.of("service", "ts-verification-code-service");
         meterRegistry.config().commonTags(tags);
-        generateErrorCounter = Counter.builder("request.code.generate.error").register(meterRegistry);
-        verifyErrorCounter = Counter.builder("request.code.verify.error").register(meterRegistry);
+        generateErrorCounter = Counter.builder("request.get.generate.error").register(meterRegistry);
+        verifyErrorCounter = Counter.builder("request.get.verify.verifyCode.error").register(meterRegistry);
     }
 
     @Autowired

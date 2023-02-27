@@ -1,6 +1,9 @@
 package route.service;
 
 import edu.fudan.common.util.Response;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tags;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +14,7 @@ import route.entity.Route;
 import route.entity.RouteInfo;
 import route.repository.RouteRepository;
 
+import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -21,6 +25,29 @@ import java.util.UUID;
  */
 @Service
 public class RouteServiceImpl implements RouteService {
+
+    private Counter post_routes_ErrorCounter;
+    private Counter delete_routes_routeId_ErrorCounter;
+    private Counter get_routes_routeId_ErrorCounter;
+    private Counter post_routes_byIds_ErrorCounter;
+    private Counter get_routes_ErrorCounter;
+    private Counter get_routes_start_end_ErrorCounter;
+
+    @Autowired
+    private MeterRegistry meterRegistry;
+
+    @PostConstruct
+    public void init() {
+        Tags tags = Tags.of("service", "ts-route-service");
+        meterRegistry.config().commonTags(tags);
+        post_routes_ErrorCounter = Counter.builder("request.post.routes.error").register(meterRegistry);
+        delete_routes_routeId_ErrorCounter = Counter.builder("request.delete.routes.routeId.error").register(meterRegistry);
+        get_routes_routeId_ErrorCounter = Counter.builder("request.get.routes.routeId.error").register(meterRegistry);
+        post_routes_byIds_ErrorCounter = Counter.builder("request.post.routes.byIds.error").register(meterRegistry);
+        get_routes_ErrorCounter = Counter.builder("request.get.routes.error").register(meterRegistry);
+        get_routes_start_end_ErrorCounter = Counter.builder("request.get.routes.start.end.error").register(meterRegistry);
+    }
+
 
     @Autowired
     private RouteRepository routeRepository;
@@ -38,6 +65,7 @@ public class RouteServiceImpl implements RouteService {
         List<Integer> distanceList = new ArrayList<>();
         if (stations.length != distances.length) {
             RouteServiceImpl.LOGGER.error("[createAndModify][Create and modify error][Station number not equal to distance number][RouteId: {}]",info.getId());
+            post_routes_ErrorCounter.increment();
             return new Response<>(0, "Station Number Not Equal To Distance Number", null);
         }
         for (int i = 0; i < stations.length; i++) {
@@ -73,6 +101,7 @@ public class RouteServiceImpl implements RouteService {
             return new Response<>(1, "Delete Success", routeId);
         } else {
             RouteServiceImpl.LOGGER.error("[deleteRoute][Delete error][Route not found][RouteId: {}]",routeId);
+            delete_routes_routeId_ErrorCounter.increment();
             return new Response<>(0, "Delete failed, Reason unKnown with this routeId", routeId);
         }
     }
@@ -82,6 +111,7 @@ public class RouteServiceImpl implements RouteService {
         Optional<Route> route = routeRepository.findById(routeId);
         if (!route.isPresent()) {
             RouteServiceImpl.LOGGER.error("[getRouteById][Find route error][Route not found][RouteId: {}]",routeId);
+            get_routes_routeId_ErrorCounter.increment();
             return new Response<>(0, "No content with the routeId", null);
         } else {
             return new Response<>(1, success, route);
@@ -94,6 +124,7 @@ public class RouteServiceImpl implements RouteService {
         List<Route> routes = routeRepository.findByIds(routeIds);
         if (routes == null || routes.isEmpty()) {
             RouteServiceImpl.LOGGER.error("[getRouteById][Find route error][Route not found][RouteIds: {}]",routeIds);
+            post_routes_byIds_ErrorCounter.increment();
             return new Response<>(0, "No content with the routeIds", null);
         } else {
             return new Response<>(1, success, routes);
@@ -115,6 +146,7 @@ public class RouteServiceImpl implements RouteService {
         if (!resultList.isEmpty()) {
             return new Response<>(1, success, resultList);
         } else {
+            get_routes_start_end_ErrorCounter.increment();
             RouteServiceImpl.LOGGER.warn("[getRouteByStartAndEnd][Find by start and terminal warn][Routes not found][startId: {},terminalId: {}]",startId,terminalId);
             return new Response<>(0, "No routes with the startId and terminalId", null);
         }
@@ -126,6 +158,7 @@ public class RouteServiceImpl implements RouteService {
         if (routes != null && !routes.isEmpty()) {
             return new Response<>(1, success, routes);
         } else {
+            get_routes_ErrorCounter.increment();
             RouteServiceImpl.LOGGER.warn("[getAllRoutes][Find all routes warn][{}]","No Content");
             return new Response<>(0, "No Content", null);
         }

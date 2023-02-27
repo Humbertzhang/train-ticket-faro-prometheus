@@ -4,6 +4,7 @@ import edu.fudan.common.entity.TravelInfo;
 import edu.fudan.common.entity.TripAllDetailInfo;
 import edu.fudan.common.entity.TripInfo;
 import edu.fudan.common.util.Response;
+import io.micrometer.core.instrument.Counter;
 import org.springframework.http.HttpHeaders;
 
 
@@ -27,7 +28,7 @@ public interface TravelService {
 
     Response queryByBatch(TripInfo info, HttpHeaders headers);
 
-    Response queryInParallel(TripInfo info, HttpHeaders headers);
+    Response queryInParallel(TripInfo info, HttpHeaders headers, Counter errorCounter);
 
     Response getTripAllDetailInfo(TripAllDetailInfo gtdi, HttpHeaders headers);
 

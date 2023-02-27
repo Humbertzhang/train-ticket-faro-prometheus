@@ -7,6 +7,9 @@ import auth.exception.UserOperationException;
 import auth.service.TokenService;
 import auth.service.UserService;
 import edu.fudan.common.util.Response;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tags;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +18,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.annotation.PostConstruct;
 import java.util.List;
 import java.util.UUID;
 
@@ -31,6 +35,18 @@ public class UserController {
     @Autowired
     private TokenService tokenService;
 
+    @Autowired
+    private MeterRegistry meterRegistry;
+
+    private Counter loginErrorCounter;
+
+    @PostConstruct
+    public void init() {
+        Tags tags = Tags.of("service", "ts-auth-service");
+        meterRegistry.config().commonTags(tags);
+        loginErrorCounter = Counter.builder("request.login.error").register(meterRegistry);
+    }
+
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
 
     @GetMapping("/hello")
@@ -45,6 +61,7 @@ public class UserController {
             Response<?> res = tokenService.getToken(dao, headers);
             return ResponseEntity.ok(res);
         } catch (UserOperationException e) {
+            loginErrorCounter.increment();
             logger.error("[getToken][tokenService.getToken error][UserOperationException, message: {}]", e.getMessage());
             return ResponseEntity.ok(new Response<>(0, "get token error", null));
         }

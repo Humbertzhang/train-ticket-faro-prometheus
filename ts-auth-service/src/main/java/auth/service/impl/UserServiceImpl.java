@@ -8,6 +8,9 @@ import auth.exception.UserOperationException;
 import auth.repository.UserRepository;
 import auth.service.UserService;
 import edu.fudan.common.util.Response;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tags;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +19,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.PostConstruct;
 import java.text.MessageFormat;
 import java.util.*;
 
@@ -24,6 +28,23 @@ import java.util.*;
  */
 @Service
 public class UserServiceImpl implements UserService {
+
+    // 其他的没返回错误
+    private Counter get_users_ErrorCounter;
+    private Counter delete_users_userId_ErrorCounter;
+
+    @Autowired
+    private MeterRegistry meterRegistry;
+
+    @PostConstruct
+    public void init() {
+        Tags tags = Tags.of("service", "ts-auth-service");
+        meterRegistry.config().commonTags(tags);
+
+        get_users_ErrorCounter = Counter.builder("request.get.users.error").register(meterRegistry);
+        delete_users_userId_ErrorCounter = Counter.builder("request.delete.users.userId.error").register(meterRegistry);
+    }
+
     private static final Logger LOGGER = LoggerFactory.getLogger(UserServiceImpl.class);
 
     @Autowired

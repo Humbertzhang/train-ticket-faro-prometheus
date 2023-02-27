@@ -3,6 +3,9 @@ package plan.service;
 import edu.fudan.common.entity.*;
 import edu.fudan.common.util.Response;
 import edu.fudan.common.util.StringUtils;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tags;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -24,6 +28,24 @@ import java.util.List;
  */
 @Service
 public class RoutePlanServiceImpl implements RoutePlanService {
+
+    // 没有显式的业务错误
+    private Counter post_routePlan_cheapestRoute_ErrorCounter;
+    private Counter post_routePlan_quickestRoute_ErrorCounter;
+    private Counter post_routePlan_minStopStations_ErrorCounter;
+
+    @Autowired
+    private MeterRegistry meterRegistry;
+
+    @PostConstruct
+    public void init() {
+        Tags tags = Tags.of("service", "ts-route-plan-service");
+        meterRegistry.config().commonTags(tags);
+        post_routePlan_cheapestRoute_ErrorCounter = Counter.builder("request.post.routePlan.cheapestRoute.error").register(meterRegistry);
+        post_routePlan_quickestRoute_ErrorCounter = Counter.builder("request.post.routePlan.quickestRoute.error").register(meterRegistry);
+        post_routePlan_minStopStations_ErrorCounter = Counter.builder("request.post.routePlan.minStopStations.error").register(meterRegistry);
+    }
+
 
     @Autowired
     private RestTemplate restTemplate;
