@@ -1,7 +1,7 @@
 import os
 
-PREFIX = "codewisdom"
-VERSION = "0.2.0"
+PREFIX = "registry.cn-hangzhou.aliyuncs.com/h10g"
+VERSION = "1.0.0"
 
 base_path = os.getcwd()
 build_paths = []
@@ -9,9 +9,9 @@ build_paths = []
 
 def main():
     if not mvn_build():
-        print("mvn build failed")
+       print("mvn build failed")
     init_docker_build_paths()
-    # docker_login()
+    docker_login()
     docker_build_and_push()
 
 
@@ -30,7 +30,7 @@ def init_docker_build_paths():
 
 
 def docker_login():
-    username = os.getenv("DOCKER_USERNAME")
+    username = os.getenv("DOCKER_USERNAME") or "humbertzhang0623"
     docker_hub_address = os.getenv("DOCKER_HUB_ADDRESS") or "registry.cn-hangzhou.aliyuncs.com"
     print(f"[DOCKER HUB LOGIN] login username:{username} address:{docker_hub_address}")
     print(f"[DOCKER HUB LOGIN] You should input your root password first and then dockerhub password")
@@ -40,18 +40,24 @@ def docker_login():
 
 
 def docker_build_and_push():
+    idx = 0
     for build_path in build_paths:
         image_name = build_path.split("/")[-1]
+
+        print(f"Docker Build Push {idx=} {image_name=}")
+        idx+=1
 
         os.chdir(build_path)
         files = os.listdir(build_path)
         if "Dockerfile" in files:
+            print(f"[COMMAND] sudo docker build . -t {PREFIX}/{image_name}:{VERSION}")
             docker_build = os.system(f"sudo docker build . -t {PREFIX}/{image_name}:{VERSION}")
             if docker_build != 0:
                 print("[FAIL]" + image_name + " build failed.")
             else:
                 print("[SUCCESS]" + image_name + " build success.")
 
+            print(f"[COMMAND] sudo docker push {PREFIX}/{image_name}:{VERSION}")
             docker_push = os.system(f"sudo docker push {PREFIX}/{image_name}:{VERSION}")
             if docker_push != 0:
                 print("[FAIL]" + image_name + " push failed.")
@@ -61,4 +67,3 @@ def docker_build_and_push():
 
 if __name__ == '__main__':
     main()
-
