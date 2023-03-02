@@ -42,3 +42,11 @@ spring:
 
 swagger:
   controllerPackage: notification.controller
+management:
+  endpoints:
+    web:
+      exposure:
+        include: *
+  metrics:
+    tags:
+      application: ${spring.application.name}

@@ -11,3 +11,11 @@ spring:
 
 swagger:
   controllerPackage: fdse.microservice.controller
+management:
+  endpoints:
+    web:
+      exposure:
+        include: *
+  metrics:
+    tags:
+      application: ${spring.application.name}

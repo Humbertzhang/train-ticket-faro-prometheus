@@ -50,3 +50,11 @@ spring:
 
 swagger:
   controllerPackage: other.controller
+management:
+  endpoints:
+    web:
+      exposure:
+        include: *
+  metrics:
+    tags:
+      application: ${spring.application.name}

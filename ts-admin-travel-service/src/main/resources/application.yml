@@ -11,3 +11,11 @@ spring:
 
 swagger:
   controllerPackage: admintravel.controller
+management:
+  endpoints:
+    web:
+      exposure:
+        include: *
+  metrics:
+    tags:
+      application: ${spring.application.name}

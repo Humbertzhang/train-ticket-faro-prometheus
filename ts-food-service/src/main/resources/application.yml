@@ -36,3 +36,11 @@ train-food-service:
 
 station-food-service:
   url: http://${STATION_FOOD_SERVICE_HOST:ts-station-food-service}:${STATION_FOOD_SERVICE_PORT:18855}
+management:
+  endpoints:
+    web:
+      exposure:
+        include: *
+  metrics:
+    tags:
+      application: ${spring.application.name}

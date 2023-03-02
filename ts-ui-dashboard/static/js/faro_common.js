@@ -5,7 +5,7 @@ function faro_init() {
         },
         transports: [
             new window.GrafanaFaroWebSdk.FetchTransport({
-                url: 'http://10.176.122.155:19090/collect',
+                url: 'http://47.103.205.96:19090/collect',
             }),
             new window.GrafanaFaroWebSdk.ConsoleTransport(),
         ],

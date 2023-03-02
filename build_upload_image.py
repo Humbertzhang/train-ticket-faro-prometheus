@@ -1,7 +1,7 @@
 import os
 
 PREFIX = "registry.cn-hangzhou.aliyuncs.com/h10g"
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 
 base_path = os.getcwd()
 build_paths = []
@@ -44,7 +44,10 @@ def docker_build_and_push():
     for build_path in build_paths:
         image_name = build_path.split("/")[-1]
 
-        print(f"Docker Build Push {idx=} {image_name=}")
+        if "avatar-service" in image_name:
+            continue
+
+        print(f"[Index] Docker Build Push {idx=} {image_name=}")
         idx+=1
 
         os.chdir(build_path)

@@ -9,18 +9,28 @@ spec:
   replicas: 1
   template:
     metadata:
+      annotations:
+        instrumentation.opentelemetry.io/inject-java: "opentelemetry-operator-system/instrumentation-3090"
       labels:
         app: ts-admin-basic-info-service
     spec:
       containers:
         - name: ts-admin-basic-info-service
-          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-admin-basic-info-service:1.0.0
+          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-admin-basic-info-service:1.0.1
           imagePullPolicy: IfNotPresent
           env:
             - name: NODE_IP
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
+            - name: SERVICE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app']
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "service.name=$(SERVICE_NAME),node.ip=$(NODE_IP)"
+            - name: OTEL_LOGS_EXPORTER
+              value: "otlp"
           envFrom:
             - configMapRef:
                 name: nacos
@@ -39,6 +49,10 @@ spec:
             initialDelaySeconds: 60
             periodSeconds: 10
             timeoutSeconds: 5
+          securityContext:
+            capabilities:
+              add:
+              - NET_ADMIN
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -51,18 +65,28 @@ spec:
   replicas: 1
   template:
     metadata:
+      annotations:
+        instrumentation.opentelemetry.io/inject-java: "opentelemetry-operator-system/instrumentation-3090"
       labels:
         app: ts-admin-order-service
     spec:
       containers:
         - name: ts-admin-order-service
-          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-admin-order-service:1.0.0
+          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-admin-order-service:1.0.1
           imagePullPolicy: IfNotPresent
           env:
             - name: NODE_IP
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
+            - name: SERVICE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app']
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "service.name=$(SERVICE_NAME),node.ip=$(NODE_IP)"
+            - name: OTEL_LOGS_EXPORTER
+              value: "otlp"
           envFrom:
             - configMapRef:
                 name: nacos
@@ -81,6 +105,10 @@ spec:
             initialDelaySeconds: 60
             periodSeconds: 10
             timeoutSeconds: 5
+          securityContext:
+            capabilities:
+              add:
+              - NET_ADMIN
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -93,18 +121,28 @@ spec:
   replicas: 1
   template:
     metadata:
+      annotations:
+        instrumentation.opentelemetry.io/inject-java: "opentelemetry-operator-system/instrumentation-3090"
       labels:
         app: ts-admin-route-service
     spec:
       containers:
         - name: ts-admin-route-service
-          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-admin-route-service:1.0.0
+          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-admin-route-service:1.0.1
           imagePullPolicy: IfNotPresent
           env:
             - name: NODE_IP
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
+            - name: SERVICE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app']
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "service.name=$(SERVICE_NAME),node.ip=$(NODE_IP)"
+            - name: OTEL_LOGS_EXPORTER
+              value: "otlp"
           envFrom:
             - configMapRef:
                 name: nacos
@@ -123,6 +161,10 @@ spec:
             initialDelaySeconds: 60
             periodSeconds: 10
             timeoutSeconds: 5
+          securityContext:
+            capabilities:
+              add:
+              - NET_ADMIN
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -135,18 +177,28 @@ spec:
   replicas: 1
   template:
     metadata:
+      annotations:
+        instrumentation.opentelemetry.io/inject-java: "opentelemetry-operator-system/instrumentation-3090"
       labels:
         app: ts-admin-travel-service
     spec:
       containers:
         - name: ts-admin-travel-service
-          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-admin-travel-service:1.0.0
+          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-admin-travel-service:1.0.1
           imagePullPolicy: IfNotPresent
           env:
             - name: NODE_IP
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
+            - name: SERVICE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app']
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "service.name=$(SERVICE_NAME),node.ip=$(NODE_IP)"
+            - name: OTEL_LOGS_EXPORTER
+              value: "otlp"
           envFrom:
             - configMapRef:
                 name: nacos
@@ -165,6 +217,10 @@ spec:
             initialDelaySeconds: 60
             periodSeconds: 10
             timeoutSeconds: 5
+          securityContext:
+            capabilities:
+              add:
+              - NET_ADMIN
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -177,18 +233,28 @@ spec:
   replicas: 1
   template:
     metadata:
+      annotations:
+        instrumentation.opentelemetry.io/inject-java: "opentelemetry-operator-system/instrumentation-3090"
       labels:
         app: ts-admin-user-service
     spec:
       containers:
         - name: ts-admin-user-service
-          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-admin-user-service:1.0.0
+          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-admin-user-service:1.0.1
           imagePullPolicy: IfNotPresent
           env:
             - name: NODE_IP
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
+            - name: SERVICE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app']
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "service.name=$(SERVICE_NAME),node.ip=$(NODE_IP)"
+            - name: OTEL_LOGS_EXPORTER
+              value: "otlp"
           envFrom:
             - configMapRef:
                 name: nacos
@@ -207,6 +273,10 @@ spec:
             initialDelaySeconds: 60
             periodSeconds: 10
             timeoutSeconds: 5
+          securityContext:
+            capabilities:
+              add:
+              - NET_ADMIN
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -219,18 +289,28 @@ spec:
   replicas: 1
   template:
     metadata:
+      annotations:
+        instrumentation.opentelemetry.io/inject-java: "opentelemetry-operator-system/instrumentation-3090"
       labels:
         app: ts-assurance-service
     spec:
       containers:
         - name: ts-assurance-service
-          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-assurance-service:1.0.0
+          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-assurance-service:1.0.1
           imagePullPolicy: IfNotPresent
           env:
             - name: NODE_IP
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
+            - name: SERVICE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app']
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "service.name=$(SERVICE_NAME),node.ip=$(NODE_IP)"
+            - name: OTEL_LOGS_EXPORTER
+              value: "otlp"
           envFrom:
             - secretRef:
                 name: ts-assurance-mysql
@@ -251,6 +331,10 @@ spec:
             initialDelaySeconds: 60
             periodSeconds: 10
             timeoutSeconds: 5
+          securityContext:
+            capabilities:
+              add:
+              - NET_ADMIN
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -263,18 +347,28 @@ spec:
   replicas: 1
   template:
     metadata:
+      annotations:
+        instrumentation.opentelemetry.io/inject-java: "opentelemetry-operator-system/instrumentation-3090"
       labels:
         app: ts-auth-service
     spec:
       containers:
         - name: ts-auth-service
-          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-auth-service:1.0.0
+          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-auth-service:1.0.1
           imagePullPolicy: IfNotPresent
           env:
             - name: NODE_IP
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
+            - name: SERVICE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app']
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "service.name=$(SERVICE_NAME),node.ip=$(NODE_IP)"
+            - name: OTEL_LOGS_EXPORTER
+              value: "otlp"
           envFrom:
             - secretRef:
                 name: ts-auth-mysql
@@ -295,6 +389,10 @@ spec:
             initialDelaySeconds: 60
             periodSeconds: 10
             timeoutSeconds: 5
+          securityContext:
+            capabilities:
+              add:
+              - NET_ADMIN
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -307,6 +405,8 @@ spec:
   replicas: 1
   template:
     metadata:
+      annotations:
+        instrumentation.opentelemetry.io/inject-java: "opentelemetry-operator-system/instrumentation-3090"
       labels:
         app: ts-avatar-service
     spec:
@@ -319,6 +419,14 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
+            - name: SERVICE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app']
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "service.name=$(SERVICE_NAME),node.ip=$(NODE_IP)"
+            - name: OTEL_LOGS_EXPORTER
+              value: "otlp"
           envFrom:
             - configMapRef:
                 name: nacos
@@ -337,6 +445,10 @@ spec:
             initialDelaySeconds: 60
             periodSeconds: 10
             timeoutSeconds: 5
+          securityContext:
+            capabilities:
+              add:
+              - NET_ADMIN
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -349,18 +461,28 @@ spec:
   replicas: 1
   template:
     metadata:
+      annotations:
+        instrumentation.opentelemetry.io/inject-java: "opentelemetry-operator-system/instrumentation-3090"
       labels:
         app: ts-basic-service
     spec:
       containers:
         - name: ts-basic-service
-          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-basic-service:1.0.0
+          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-basic-service:1.0.1
           imagePullPolicy: IfNotPresent
           env:
             - name: NODE_IP
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
+            - name: SERVICE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app']
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "service.name=$(SERVICE_NAME),node.ip=$(NODE_IP)"
+            - name: OTEL_LOGS_EXPORTER
+              value: "otlp"
           envFrom:
             - configMapRef:
                 name: nacos
@@ -379,6 +501,10 @@ spec:
             initialDelaySeconds: 60
             periodSeconds: 10
             timeoutSeconds: 5
+          securityContext:
+            capabilities:
+              add:
+              - NET_ADMIN
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -391,18 +517,28 @@ spec:
   replicas: 1
   template:
     metadata:
+      annotations:
+        instrumentation.opentelemetry.io/inject-java: "opentelemetry-operator-system/instrumentation-3090"
       labels:
         app: ts-cancel-service
     spec:
       containers:
         - name: ts-cancel-service
-          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-cancel-service:1.0.0
+          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-cancel-service:1.0.1
           imagePullPolicy: IfNotPresent
           env:
             - name: NODE_IP
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
+            - name: SERVICE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app']
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "service.name=$(SERVICE_NAME),node.ip=$(NODE_IP)"
+            - name: OTEL_LOGS_EXPORTER
+              value: "otlp"
           envFrom:
             - configMapRef:
                 name: nacos
@@ -421,6 +557,10 @@ spec:
             initialDelaySeconds: 60
             periodSeconds: 10
             timeoutSeconds: 5
+          securityContext:
+            capabilities:
+              add:
+              - NET_ADMIN
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -433,18 +573,28 @@ spec:
   replicas: 1
   template:
     metadata:
+      annotations:
+        instrumentation.opentelemetry.io/inject-java: "opentelemetry-operator-system/instrumentation-3090"
       labels:
         app: ts-config-service
     spec:
       containers:
         - name: ts-config-service
-          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-config-service:1.0.0
+          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-config-service:1.0.1
           imagePullPolicy: IfNotPresent
           env:
             - name: NODE_IP
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
+            - name: SERVICE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app']
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "service.name=$(SERVICE_NAME),node.ip=$(NODE_IP)"
+            - name: OTEL_LOGS_EXPORTER
+              value: "otlp"
           envFrom:
             - secretRef:
                 name: ts-config-mysql
@@ -465,6 +615,10 @@ spec:
             initialDelaySeconds: 60
             periodSeconds: 10
             timeoutSeconds: 5
+          securityContext:
+            capabilities:
+              add:
+              - NET_ADMIN
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -477,18 +631,28 @@ spec:
   replicas: 1
   template:
     metadata:
+      annotations:
+        instrumentation.opentelemetry.io/inject-java: "opentelemetry-operator-system/instrumentation-3090"
       labels:
         app: ts-consign-price-service
     spec:
       containers:
         - name: ts-consign-price-service
-          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-consign-price-service:1.0.0
+          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-consign-price-service:1.0.1
           imagePullPolicy: IfNotPresent
           env:
             - name: NODE_IP
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
+            - name: SERVICE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app']
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "service.name=$(SERVICE_NAME),node.ip=$(NODE_IP)"
+            - name: OTEL_LOGS_EXPORTER
+              value: "otlp"
           envFrom:
             - secretRef:
                 name: ts-consign-price-mysql
@@ -509,6 +673,10 @@ spec:
             initialDelaySeconds: 60
             periodSeconds: 10
             timeoutSeconds: 5
+          securityContext:
+            capabilities:
+              add:
+              - NET_ADMIN
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -521,18 +689,28 @@ spec:
   replicas: 1
   template:
     metadata:
+      annotations:
+        instrumentation.opentelemetry.io/inject-java: "opentelemetry-operator-system/instrumentation-3090"
       labels:
         app: ts-consign-service
     spec:
       containers:
         - name: ts-consign-service
-          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-consign-service:1.0.0
+          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-consign-service:1.0.1
           imagePullPolicy: IfNotPresent
           env:
             - name: NODE_IP
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
+            - name: SERVICE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app']
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "service.name=$(SERVICE_NAME),node.ip=$(NODE_IP)"
+            - name: OTEL_LOGS_EXPORTER
+              value: "otlp"
           envFrom:
             - secretRef:
                 name: ts-consign-mysql
@@ -553,6 +731,10 @@ spec:
             initialDelaySeconds: 60
             periodSeconds: 10
             timeoutSeconds: 5
+          securityContext:
+            capabilities:
+              add:
+              - NET_ADMIN
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -565,18 +747,28 @@ spec:
   replicas: 1
   template:
     metadata:
+      annotations:
+        instrumentation.opentelemetry.io/inject-java: "opentelemetry-operator-system/instrumentation-3090"
       labels:
         app: ts-contacts-service
     spec:
       containers:
         - name: ts-contacts-service
-          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-contacts-service:1.0.0
+          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-contacts-service:1.0.1
           imagePullPolicy: IfNotPresent
           env:
             - name: NODE_IP
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
+            - name: SERVICE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app']
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "service.name=$(SERVICE_NAME),node.ip=$(NODE_IP)"
+            - name: OTEL_LOGS_EXPORTER
+              value: "otlp"
           envFrom:
             - secretRef:
                 name: ts-contacts-mysql
@@ -597,6 +789,10 @@ spec:
             initialDelaySeconds: 60
             periodSeconds: 10
             timeoutSeconds: 5
+          securityContext:
+            capabilities:
+              add:
+              - NET_ADMIN
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -609,18 +805,28 @@ spec:
   replicas: 1
   template:
     metadata:
+      annotations:
+        instrumentation.opentelemetry.io/inject-java: "opentelemetry-operator-system/instrumentation-3090"
       labels:
         app: ts-delivery-service
     spec:
       containers:
         - name: ts-delivery-service
-          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-delivery-service:1.0.0
+          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-delivery-service:1.0.1
           imagePullPolicy: IfNotPresent
           env:
             - name: NODE_IP
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
+            - name: SERVICE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app']
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "service.name=$(SERVICE_NAME),node.ip=$(NODE_IP)"
+            - name: OTEL_LOGS_EXPORTER
+              value: "otlp"
           envFrom:
             - secretRef:
                 name: ts-delivery-mysql
@@ -643,6 +849,10 @@ spec:
             initialDelaySeconds: 60
             periodSeconds: 10
             timeoutSeconds: 5
+          securityContext:
+            capabilities:
+              add:
+              - NET_ADMIN
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -655,18 +865,28 @@ spec:
   replicas: 1
   template:
     metadata:
+      annotations:
+        instrumentation.opentelemetry.io/inject-java: "opentelemetry-operator-system/instrumentation-3090"
       labels:
         app: ts-execute-service
     spec:
       containers:
         - name: ts-execute-service
-          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-execute-service:1.0.0
+          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-execute-service:1.0.1
           imagePullPolicy: IfNotPresent
           env:
             - name: NODE_IP
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
+            - name: SERVICE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app']
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "service.name=$(SERVICE_NAME),node.ip=$(NODE_IP)"
+            - name: OTEL_LOGS_EXPORTER
+              value: "otlp"
           envFrom:
             - configMapRef:
                 name: nacos
@@ -685,6 +905,10 @@ spec:
             initialDelaySeconds: 60
             periodSeconds: 10
             timeoutSeconds: 5
+          securityContext:
+            capabilities:
+              add:
+              - NET_ADMIN
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -697,18 +921,28 @@ spec:
   replicas: 1
   template:
     metadata:
+      annotations:
+        instrumentation.opentelemetry.io/inject-java: "opentelemetry-operator-system/instrumentation-3090"
       labels:
         app: ts-food-service
     spec:
       containers:
         - name: ts-food-service
-          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-food-service:1.0.0
+          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-food-service:1.0.1
           imagePullPolicy: IfNotPresent
           env:
             - name: NODE_IP
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
+            - name: SERVICE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app']
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "service.name=$(SERVICE_NAME),node.ip=$(NODE_IP)"
+            - name: OTEL_LOGS_EXPORTER
+              value: "otlp"
           envFrom:
             - configMapRef:
                 name: nacos
@@ -731,6 +965,10 @@ spec:
             initialDelaySeconds: 60
             periodSeconds: 10
             timeoutSeconds: 5
+          securityContext:
+            capabilities:
+              add:
+              - NET_ADMIN
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -743,18 +981,28 @@ spec:
   replicas: 1
   template:
     metadata:
+      annotations:
+        instrumentation.opentelemetry.io/inject-java: "opentelemetry-operator-system/instrumentation-3090"
       labels:
         app: ts-food-delivery-service
     spec:
       containers:
         - name: ts-food-delivery-service
-          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-food-delivery-service:1.0.0
+          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-food-delivery-service:1.0.1
           imagePullPolicy: IfNotPresent
           env:
             - name: NODE_IP
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
+            - name: SERVICE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app']
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "service.name=$(SERVICE_NAME),node.ip=$(NODE_IP)"
+            - name: OTEL_LOGS_EXPORTER
+              value: "otlp"
           envFrom:
             - secretRef:
                 name: ts-food-delivery-mysql
@@ -775,6 +1023,10 @@ spec:
             initialDelaySeconds: 60
             periodSeconds: 10
             timeoutSeconds: 5
+          securityContext:
+            capabilities:
+              add:
+              - NET_ADMIN
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -792,13 +1044,21 @@ spec:
     spec:
       containers:
         - name: ts-gateway-service
-          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-gateway-service:1.0.0
+          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-gateway-service:1.0.1
           imagePullPolicy: IfNotPresent
           env:
             - name: NODE_IP
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
+            - name: SERVICE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app']
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "service.name=$(SERVICE_NAME),node.ip=$(NODE_IP)"
+            - name: OTEL_LOGS_EXPORTER
+              value: "otlp"
           envFrom:
             - configMapRef:
                 name: nacos
@@ -817,6 +1077,10 @@ spec:
             initialDelaySeconds: 60
             periodSeconds: 10
             timeoutSeconds: 5
+          securityContext:
+            capabilities:
+              add:
+              - NET_ADMIN
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -829,18 +1093,28 @@ spec:
   replicas: 1
   template:
     metadata:
+      annotations:
+        instrumentation.opentelemetry.io/inject-java: "opentelemetry-operator-system/instrumentation-3090"
       labels:
         app: ts-inside-payment-service
     spec:
       containers:
         - name: ts-inside-payment-service
-          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-inside-payment-service:1.0.0
+          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-inside-payment-service:1.0.1
           imagePullPolicy: IfNotPresent
           env:
             - name: NODE_IP
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
+            - name: SERVICE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app']
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "service.name=$(SERVICE_NAME),node.ip=$(NODE_IP)"
+            - name: OTEL_LOGS_EXPORTER
+              value: "otlp"
           envFrom:
             - secretRef:
                 name: ts-inside-payment-mysql
@@ -861,6 +1135,10 @@ spec:
             initialDelaySeconds: 60
             periodSeconds: 10
             timeoutSeconds: 5
+          securityContext:
+            capabilities:
+              add:
+              - NET_ADMIN
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -873,18 +1151,28 @@ spec:
   replicas: 1
   template:
     metadata:
+      annotations:
+        instrumentation.opentelemetry.io/inject-java: "opentelemetry-operator-system/instrumentation-3090"
       labels:
         app: ts-news-service
     spec:
       containers:
         - name: ts-news-service
-          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-news-service:1.0.0
+          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-news-service:1.0.1
           imagePullPolicy: IfNotPresent
           env:
             - name: NODE_IP
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
+            - name: SERVICE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app']
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "service.name=$(SERVICE_NAME),node.ip=$(NODE_IP)"
+            - name: OTEL_LOGS_EXPORTER
+              value: "otlp"
           envFrom:
             - configMapRef:
                 name: nacos
@@ -903,6 +1191,10 @@ spec:
             initialDelaySeconds: 60
             periodSeconds: 10
             timeoutSeconds: 5
+          securityContext:
+            capabilities:
+              add:
+              - NET_ADMIN
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -915,18 +1207,28 @@ spec:
   replicas: 1
   template:
     metadata:
+      annotations:
+        instrumentation.opentelemetry.io/inject-java: "opentelemetry-operator-system/instrumentation-3090"
       labels:
         app: ts-notification-service
     spec:
       containers:
         - name: ts-notification-service
-          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-notification-service:1.0.0
+          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-notification-service:1.0.1
           imagePullPolicy: IfNotPresent
           env:
             - name: NODE_IP
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
+            - name: SERVICE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app']
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "service.name=$(SERVICE_NAME),node.ip=$(NODE_IP)"
+            - name: OTEL_LOGS_EXPORTER
+              value: "otlp"
           envFrom:
             - secretRef:
                 name: ts-notification-mysql
@@ -949,6 +1251,10 @@ spec:
             initialDelaySeconds: 60
             periodSeconds: 10
             timeoutSeconds: 5
+          securityContext:
+            capabilities:
+              add:
+              - NET_ADMIN
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -961,18 +1267,28 @@ spec:
   replicas: 1
   template:
     metadata:
+      annotations:
+        instrumentation.opentelemetry.io/inject-java: "opentelemetry-operator-system/instrumentation-3090"
       labels:
         app: ts-order-other-service
     spec:
       containers:
         - name: ts-order-other-service
-          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-order-other-service:1.0.0
+          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-order-other-service:1.0.1
           imagePullPolicy: IfNotPresent
           env:
             - name: NODE_IP
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
+            - name: SERVICE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app']
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "service.name=$(SERVICE_NAME),node.ip=$(NODE_IP)"
+            - name: OTEL_LOGS_EXPORTER
+              value: "otlp"
           envFrom:
             - secretRef:
                 name: ts-order-other-mysql
@@ -995,6 +1311,10 @@ spec:
             initialDelaySeconds: 60
             periodSeconds: 10
             timeoutSeconds: 5
+          securityContext:
+            capabilities:
+              add:
+              - NET_ADMIN
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -1007,18 +1327,28 @@ spec:
   replicas: 1
   template:
     metadata:
+      annotations:
+        instrumentation.opentelemetry.io/inject-java: "opentelemetry-operator-system/instrumentation-3090"
       labels:
         app: ts-order-service
     spec:
       containers:
         - name: ts-order-service
-          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-order-service:1.0.0
+          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-order-service:1.0.1
           imagePullPolicy: IfNotPresent
           env:
             - name: NODE_IP
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
+            - name: SERVICE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app']
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "service.name=$(SERVICE_NAME),node.ip=$(NODE_IP)"
+            - name: OTEL_LOGS_EXPORTER
+              value: "otlp"
           envFrom:
             - secretRef:
                 name: ts-order-mysql
@@ -1041,6 +1371,10 @@ spec:
             initialDelaySeconds: 60
             periodSeconds: 10
             timeoutSeconds: 5
+          securityContext:
+            capabilities:
+              add:
+              - NET_ADMIN
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -1053,18 +1387,28 @@ spec:
   replicas: 1
   template:
     metadata:
+      annotations:
+        instrumentation.opentelemetry.io/inject-java: "opentelemetry-operator-system/instrumentation-3090"
       labels:
         app: ts-payment-service
     spec:
       containers:
         - name: ts-payment-service
-          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-payment-service:1.0.0
+          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-payment-service:1.0.1
           imagePullPolicy: IfNotPresent
           env:
             - name: NODE_IP
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
+            - name: SERVICE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app']
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "service.name=$(SERVICE_NAME),node.ip=$(NODE_IP)"
+            - name: OTEL_LOGS_EXPORTER
+              value: "otlp"
           envFrom:
             - secretRef:
                 name: ts-payment-mysql
@@ -1085,6 +1429,10 @@ spec:
             initialDelaySeconds: 60
             periodSeconds: 10
             timeoutSeconds: 5
+          securityContext:
+            capabilities:
+              add:
+              - NET_ADMIN
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -1097,18 +1445,28 @@ spec:
   replicas: 1
   template:
     metadata:
+      annotations:
+        instrumentation.opentelemetry.io/inject-java: "opentelemetry-operator-system/instrumentation-3090"
       labels:
         app: ts-preserve-other-service
     spec:
       containers:
         - name: ts-preserve-other-service
-          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-preserve-other-service:1.0.0
+          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-preserve-other-service:1.0.1
           imagePullPolicy: IfNotPresent
           env:
             - name: NODE_IP
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
+            - name: SERVICE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app']
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "service.name=$(SERVICE_NAME),node.ip=$(NODE_IP)"
+            - name: OTEL_LOGS_EXPORTER
+              value: "otlp"
           envFrom:
             - configMapRef:
                 name: nacos
@@ -1129,6 +1487,10 @@ spec:
             initialDelaySeconds: 60
             periodSeconds: 10
             timeoutSeconds: 5
+          securityContext:
+            capabilities:
+              add:
+              - NET_ADMIN
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -1141,18 +1503,28 @@ spec:
   replicas: 1
   template:
     metadata:
+      annotations:
+        instrumentation.opentelemetry.io/inject-java: "opentelemetry-operator-system/instrumentation-3090"
       labels:
         app: ts-preserve-service
     spec:
       containers:
         - name: ts-preserve-service
-          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-preserve-service:1.0.0
+          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-preserve-service:1.0.1
           imagePullPolicy: IfNotPresent
           env:
             - name: NODE_IP
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
+            - name: SERVICE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app']
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "service.name=$(SERVICE_NAME),node.ip=$(NODE_IP)"
+            - name: OTEL_LOGS_EXPORTER
+              value: "otlp"
           envFrom:
             - configMapRef:
                 name: nacos
@@ -1173,6 +1545,10 @@ spec:
             initialDelaySeconds: 60
             periodSeconds: 10
             timeoutSeconds: 5
+          securityContext:
+            capabilities:
+              add:
+              - NET_ADMIN
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -1185,18 +1561,28 @@ spec:
   replicas: 1
   template:
     metadata:
+      annotations:
+        instrumentation.opentelemetry.io/inject-java: "opentelemetry-operator-system/instrumentation-3090"
       labels:
         app: ts-price-service
     spec:
       containers:
         - name: ts-price-service
-          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-price-service:1.0.0
+          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-price-service:1.0.1
           imagePullPolicy: IfNotPresent
           env:
             - name: NODE_IP
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
+            - name: SERVICE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app']
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "service.name=$(SERVICE_NAME),node.ip=$(NODE_IP)"
+            - name: OTEL_LOGS_EXPORTER
+              value: "otlp"
           envFrom:
             - secretRef:
                 name: ts-price-mysql
@@ -1217,6 +1603,10 @@ spec:
             initialDelaySeconds: 60
             periodSeconds: 10
             timeoutSeconds: 5
+          securityContext:
+            capabilities:
+              add:
+              - NET_ADMIN
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -1229,18 +1619,28 @@ spec:
   replicas: 1
   template:
     metadata:
+      annotations:
+        instrumentation.opentelemetry.io/inject-java: "opentelemetry-operator-system/instrumentation-3090"
       labels:
         app: ts-rebook-service
     spec:
       containers:
         - name: ts-rebook-service
-          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-rebook-service:1.0.0
+          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-rebook-service:1.0.1
           imagePullPolicy: IfNotPresent
           env:
             - name: NODE_IP
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
+            - name: SERVICE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app']
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "service.name=$(SERVICE_NAME),node.ip=$(NODE_IP)"
+            - name: OTEL_LOGS_EXPORTER
+              value: "otlp"
           envFrom:
             - configMapRef:
                 name: nacos
@@ -1261,6 +1661,10 @@ spec:
             initialDelaySeconds: 60
             periodSeconds: 10
             timeoutSeconds: 5
+          securityContext:
+            capabilities:
+              add:
+              - NET_ADMIN
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -1273,18 +1677,28 @@ spec:
   replicas: 1
   template:
     metadata:
+      annotations:
+        instrumentation.opentelemetry.io/inject-java: "opentelemetry-operator-system/instrumentation-3090"
       labels:
         app: ts-route-plan-service
     spec:
       containers:
         - name: ts-route-plan-service
-          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-route-plan-service:1.0.0
+          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-route-plan-service:1.0.1
           imagePullPolicy: IfNotPresent
           env:
             - name: NODE_IP
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
+            - name: SERVICE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app']
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "service.name=$(SERVICE_NAME),node.ip=$(NODE_IP)"
+            - name: OTEL_LOGS_EXPORTER
+              value: "otlp"
           envFrom:
             - configMapRef:
                 name: nacos
@@ -1303,6 +1717,10 @@ spec:
             initialDelaySeconds: 60
             periodSeconds: 10
             timeoutSeconds: 5
+          securityContext:
+            capabilities:
+              add:
+              - NET_ADMIN
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -1315,18 +1733,28 @@ spec:
   replicas: 1
   template:
     metadata:
+      annotations:
+        instrumentation.opentelemetry.io/inject-java: "opentelemetry-operator-system/instrumentation-3090"
       labels:
         app: ts-route-service
     spec:
       containers:
         - name: ts-route-service
-          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-route-service:1.0.0
+          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-route-service:1.0.1
           imagePullPolicy: IfNotPresent
           env:
             - name: NODE_IP
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
+            - name: SERVICE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app']
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "service.name=$(SERVICE_NAME),node.ip=$(NODE_IP)"
+            - name: OTEL_LOGS_EXPORTER
+              value: "otlp"
           envFrom:
             - secretRef:
                 name: ts-route-mysql
@@ -1347,6 +1775,10 @@ spec:
             initialDelaySeconds: 60
             periodSeconds: 10
             timeoutSeconds: 5
+          securityContext:
+            capabilities:
+              add:
+              - NET_ADMIN
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -1359,18 +1791,28 @@ spec:
   replicas: 1
   template:
     metadata:
+      annotations:
+        instrumentation.opentelemetry.io/inject-java: "opentelemetry-operator-system/instrumentation-3090"
       labels:
         app: ts-seat-service
     spec:
       containers:
         - name: ts-seat-service
-          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-seat-service:1.0.0
+          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-seat-service:1.0.1
           imagePullPolicy: IfNotPresent
           env:
             - name: NODE_IP
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
+            - name: SERVICE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app']
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "service.name=$(SERVICE_NAME),node.ip=$(NODE_IP)"
+            - name: OTEL_LOGS_EXPORTER
+              value: "otlp"
           envFrom:
             - configMapRef:
                 name: nacos
@@ -1389,6 +1831,10 @@ spec:
             initialDelaySeconds: 60
             periodSeconds: 10
             timeoutSeconds: 5
+          securityContext:
+            capabilities:
+              add:
+              - NET_ADMIN
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -1401,18 +1847,28 @@ spec:
   replicas: 1
   template:
     metadata:
+      annotations:
+        instrumentation.opentelemetry.io/inject-java: "opentelemetry-operator-system/instrumentation-3090"
       labels:
         app: ts-security-service
     spec:
       containers:
         - name: ts-security-service
-          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-security-service:1.0.0
+          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-security-service:1.0.1
           imagePullPolicy: IfNotPresent
           env:
             - name: NODE_IP
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
+            - name: SERVICE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app']
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "service.name=$(SERVICE_NAME),node.ip=$(NODE_IP)"
+            - name: OTEL_LOGS_EXPORTER
+              value: "otlp"
           envFrom:
             - secretRef:
                 name: ts-security-mysql
@@ -1433,6 +1889,10 @@ spec:
             initialDelaySeconds: 60
             periodSeconds: 10
             timeoutSeconds: 5
+          securityContext:
+            capabilities:
+              add:
+              - NET_ADMIN
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -1445,18 +1905,28 @@ spec:
   replicas: 1
   template:
     metadata:
+      annotations:
+        instrumentation.opentelemetry.io/inject-java: "opentelemetry-operator-system/instrumentation-3090"
       labels:
         app: ts-station-food-service
     spec:
       containers:
         - name: ts-station-food-service
-          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-station-food-service:1.0.0
+          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-station-food-service:1.0.1
           imagePullPolicy: IfNotPresent
           env:
             - name: NODE_IP
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
+            - name: SERVICE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app']
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "service.name=$(SERVICE_NAME),node.ip=$(NODE_IP)"
+            - name: OTEL_LOGS_EXPORTER
+              value: "otlp"
           envFrom:
             - secretRef:
                 name: ts-station-food-mysql
@@ -1477,6 +1947,10 @@ spec:
             initialDelaySeconds: 60
             periodSeconds: 10
             timeoutSeconds: 5
+          securityContext:
+            capabilities:
+              add:
+              - NET_ADMIN
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -1489,18 +1963,28 @@ spec:
   replicas: 1
   template:
     metadata:
+      annotations:
+        instrumentation.opentelemetry.io/inject-java: "opentelemetry-operator-system/instrumentation-3090"
       labels:
         app: ts-station-service
     spec:
       containers:
         - name: ts-station-service
-          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-station-service:1.0.0
+          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-station-service:1.0.1
           imagePullPolicy: IfNotPresent
           env:
             - name: NODE_IP
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
+            - name: SERVICE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app']
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "service.name=$(SERVICE_NAME),node.ip=$(NODE_IP)"
+            - name: OTEL_LOGS_EXPORTER
+              value: "otlp"
           envFrom:
             - secretRef:
                 name: ts-station-mysql
@@ -1521,6 +2005,10 @@ spec:
             initialDelaySeconds: 60
             periodSeconds: 10
             timeoutSeconds: 5
+          securityContext:
+            capabilities:
+              add:
+              - NET_ADMIN
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -1533,18 +2021,28 @@ spec:
   replicas: 1
   template:
     metadata:
+      annotations:
+        instrumentation.opentelemetry.io/inject-java: "opentelemetry-operator-system/instrumentation-3090"
       labels:
         app: ts-ticket-office-service
     spec:
       containers:
         - name: ts-ticket-office-service
-          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-ticket-office-service:1.0.0
+          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-ticket-office-service:1.0.1
           imagePullPolicy: IfNotPresent
           env:
             - name: NODE_IP
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
+            - name: SERVICE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app']
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "service.name=$(SERVICE_NAME),node.ip=$(NODE_IP)"
+            - name: OTEL_LOGS_EXPORTER
+              value: "otlp"
           envFrom:
             - secretRef:
                 name: ts-ticket-office-mysql
@@ -1565,6 +2063,10 @@ spec:
             initialDelaySeconds: 60
             periodSeconds: 10
             timeoutSeconds: 5
+          securityContext:
+            capabilities:
+              add:
+              - NET_ADMIN
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -1577,18 +2079,28 @@ spec:
   replicas: 1
   template:
     metadata:
+      annotations:
+        instrumentation.opentelemetry.io/inject-java: "opentelemetry-operator-system/instrumentation-3090"
       labels:
         app: ts-train-food-service
     spec:
       containers:
         - name: ts-train-food-service
-          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-train-food-service:1.0.0
+          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-train-food-service:1.0.1
           imagePullPolicy: IfNotPresent
           env:
             - name: NODE_IP
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
+            - name: SERVICE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app']
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "service.name=$(SERVICE_NAME),node.ip=$(NODE_IP)"
+            - name: OTEL_LOGS_EXPORTER
+              value: "otlp"
           envFrom:
             - secretRef:
                 name: ts-train-food-mysql
@@ -1609,6 +2121,10 @@ spec:
             initialDelaySeconds: 60
             periodSeconds: 10
             timeoutSeconds: 5
+          securityContext:
+            capabilities:
+              add:
+              - NET_ADMIN
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -1621,18 +2137,28 @@ spec:
   replicas: 1
   template:
     metadata:
+      annotations:
+        instrumentation.opentelemetry.io/inject-java: "opentelemetry-operator-system/instrumentation-3090"
       labels:
         app: ts-train-service
     spec:
       containers:
         - name: ts-train-service
-          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-train-service:1.0.0
+          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-train-service:1.0.1
           imagePullPolicy: IfNotPresent
           env:
             - name: NODE_IP
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
+            - name: SERVICE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app']
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "service.name=$(SERVICE_NAME),node.ip=$(NODE_IP)"
+            - name: OTEL_LOGS_EXPORTER
+              value: "otlp"
           envFrom:
             - secretRef:
                 name: ts-train-mysql
@@ -1653,6 +2179,10 @@ spec:
             initialDelaySeconds: 60
             periodSeconds: 10
             timeoutSeconds: 5
+          securityContext:
+            capabilities:
+              add:
+              - NET_ADMIN
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -1665,18 +2195,28 @@ spec:
   replicas: 1
   template:
     metadata:
+      annotations:
+        instrumentation.opentelemetry.io/inject-java: "opentelemetry-operator-system/instrumentation-3090"
       labels:
         app: ts-travel-plan-service
     spec:
       containers:
         - name: ts-travel-plan-service
-          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-travel-plan-service:1.0.0
+          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-travel-plan-service:1.0.1
           imagePullPolicy: IfNotPresent
           env:
             - name: NODE_IP
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
+            - name: SERVICE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app']
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "service.name=$(SERVICE_NAME),node.ip=$(NODE_IP)"
+            - name: OTEL_LOGS_EXPORTER
+              value: "otlp"
           envFrom:
             - configMapRef:
                 name: nacos
@@ -1695,6 +2235,10 @@ spec:
             initialDelaySeconds: 60
             periodSeconds: 10
             timeoutSeconds: 5
+          securityContext:
+            capabilities:
+              add:
+              - NET_ADMIN
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -1707,18 +2251,28 @@ spec:
   replicas: 1
   template:
     metadata:
+      annotations:
+        instrumentation.opentelemetry.io/inject-java: "opentelemetry-operator-system/instrumentation-3090"
       labels:
         app: ts-travel-service
     spec:
       containers:
         - name: ts-travel-service
-          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-travel-service:1.0.0
+          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-travel-service:1.0.1
           imagePullPolicy: IfNotPresent
           env:
             - name: NODE_IP
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
+            - name: SERVICE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app']
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "service.name=$(SERVICE_NAME),node.ip=$(NODE_IP)"
+            - name: OTEL_LOGS_EXPORTER
+              value: "otlp"
           envFrom:
             - secretRef:
                 name: ts-travel-mysql
@@ -1739,6 +2293,10 @@ spec:
             initialDelaySeconds: 60
             periodSeconds: 10
             timeoutSeconds: 5
+          securityContext:
+            capabilities:
+              add:
+              - NET_ADMIN
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -1751,18 +2309,28 @@ spec:
   replicas: 1
   template:
     metadata:
+      annotations:
+        instrumentation.opentelemetry.io/inject-java: "opentelemetry-operator-system/instrumentation-3090"
       labels:
         app: ts-travel2-service
     spec:
       containers:
         - name: ts-travel2-service
-          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-travel2-service:1.0.0
+          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-travel2-service:1.0.1
           imagePullPolicy: IfNotPresent
           env:
             - name: NODE_IP
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
+            - name: SERVICE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app']
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "service.name=$(SERVICE_NAME),node.ip=$(NODE_IP)"
+            - name: OTEL_LOGS_EXPORTER
+              value: "otlp"
           envFrom:
             - secretRef:
                 name: ts-travel2-mysql
@@ -1783,6 +2351,10 @@ spec:
             initialDelaySeconds: 60
             periodSeconds: 10
             timeoutSeconds: 5
+          securityContext:
+            capabilities:
+              add:
+              - NET_ADMIN
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -1795,18 +2367,28 @@ spec:
   replicas: 1
   template:
     metadata:
+      annotations:
+        instrumentation.opentelemetry.io/inject-java: "opentelemetry-operator-system/instrumentation-3090"
       labels:
         app: ts-user-service
     spec:
       containers:
         - name: ts-user-service
-          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-user-service:1.0.0
+          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-user-service:1.0.1
           imagePullPolicy: IfNotPresent
           env:
             - name: NODE_IP
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
+            - name: SERVICE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app']
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "service.name=$(SERVICE_NAME),node.ip=$(NODE_IP)"
+            - name: OTEL_LOGS_EXPORTER
+              value: "otlp"
           envFrom:
             - secretRef:
                 name: ts-user-mysql
@@ -1827,6 +2409,10 @@ spec:
             initialDelaySeconds: 60
             periodSeconds: 10
             timeoutSeconds: 5
+          securityContext:
+            capabilities:
+              add:
+              - NET_ADMIN
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -1839,18 +2425,28 @@ spec:
   replicas: 1
   template:
     metadata:
+      annotations:
+        instrumentation.opentelemetry.io/inject-java: "opentelemetry-operator-system/instrumentation-3090"
       labels:
         app: ts-verification-code-service
     spec:
       containers:
         - name: ts-verification-code-service
-          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-verification-code-service:1.0.0
+          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-verification-code-service:1.0.1
           imagePullPolicy: IfNotPresent
           env:
             - name: NODE_IP
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
+            - name: SERVICE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app']
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "service.name=$(SERVICE_NAME),node.ip=$(NODE_IP)"
+            - name: OTEL_LOGS_EXPORTER
+              value: "otlp"
           envFrom:
             - configMapRef:
                 name: nacos
@@ -1869,6 +2465,10 @@ spec:
             initialDelaySeconds: 60
             periodSeconds: 10
             timeoutSeconds: 5
+          securityContext:
+            capabilities:
+              add:
+              - NET_ADMIN
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -1886,13 +2486,21 @@ spec:
     spec:
       containers:
         - name: ts-voucher-service
-          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-voucher-service:1.0.0
+          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-voucher-service:1.0.1
           imagePullPolicy: IfNotPresent
           env:
             - name: NODE_IP
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
+            - name: SERVICE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app']
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "service.name=$(SERVICE_NAME),node.ip=$(NODE_IP)"
+            - name: OTEL_LOGS_EXPORTER
+              value: "otlp"
           envFrom:
             - secretRef:
                 name: ts-voucher-mysql
@@ -1913,6 +2521,10 @@ spec:
             initialDelaySeconds: 60
             periodSeconds: 10
             timeoutSeconds: 5
+          securityContext:
+            capabilities:
+              add:
+              - NET_ADMIN
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -1925,18 +2537,28 @@ spec:
   replicas: 1
   template:
     metadata:
+      annotations:
+        instrumentation.opentelemetry.io/inject-java: "opentelemetry-operator-system/instrumentation-3090"
       labels:
         app: ts-wait-order-service
     spec:
       containers:
         - name: ts-wait-order-service
-          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-wait-order-service:1.0.0
+          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-wait-order-service:1.0.1
           imagePullPolicy: IfNotPresent
           env:
             - name: NODE_IP
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
+            - name: SERVICE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app']
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "service.name=$(SERVICE_NAME),node.ip=$(NODE_IP)"
+            - name: OTEL_LOGS_EXPORTER
+              value: "otlp"
           envFrom:
             - secretRef:
                 name: ts-wait-order-mysql
@@ -1957,6 +2579,10 @@ spec:
             initialDelaySeconds: 60
             periodSeconds: 10
             timeoutSeconds: 5
+          securityContext:
+            capabilities:
+              add:
+              - NET_ADMIN
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -1974,7 +2600,7 @@ spec:
     spec:
       containers:
         - name: ts-ui-dashboard
-          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-ui-dashboard:1.0.0
+          image: registry.cn-hangzhou.aliyuncs.com/h10g/ts-ui-dashboard:1.0.1
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080

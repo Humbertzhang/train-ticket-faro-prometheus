@@ -24,3 +24,11 @@ server:
 
 swagger:
   controllerPackage: config.controller
+management:
+  endpoints:
+    web:
+      exposure:
+        include: *
+  metrics:
+    tags:
+      application: ${spring.application.name}

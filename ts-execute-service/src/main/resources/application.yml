@@ -10,3 +10,11 @@ spring:
     name: ts-execute-service
 swagger:
   controllerPackage: execute.controller
+management:
+  endpoints:
+    web:
+      exposure:
+        include: *
+  metrics:
+    tags:
+      application: ${spring.application.name}

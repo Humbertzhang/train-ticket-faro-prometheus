@@ -11,3 +11,12 @@ spring:
 
 swagger:
   controllerPackage: adminroute.controller
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: *
+  metrics:
+    tags:
+      application: ${spring.application.name}

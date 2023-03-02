@@ -23,3 +23,11 @@ spring:
 
 swagger:
   controllerPackage: food.controller
+management:
+  endpoints:
+    web:
+      exposure:
+        include: *
+  metrics:
+    tags:
+      application: ${spring.application.name}

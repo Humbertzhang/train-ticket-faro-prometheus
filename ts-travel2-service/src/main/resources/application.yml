@@ -23,3 +23,11 @@ spring:
         dialect: org.hibernate.dialect.MySQL5Dialect
 swagger:
   controllerPackage: travel2.controller
+management:
+  endpoints:
+    web:
+      exposure:
+        include: *
+  metrics:
+    tags:
+      application: ${spring.application.name}
