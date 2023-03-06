@@ -6,14 +6,19 @@ metadata:
   labels:
     kubernetes.io/cluster-service: "true"
     addonmanager.kubernetes.io/mode: EnsureExists
+
 data:
   alertmanager.yml: |
     global:
       resolve_timeout: 5m
+      smtp_smarthost: 'smtp.qq.com:465'
+      smtp_from: '1415193349@qq.com'
+      smtp_auth_username: '1415193349@qq.com'
+      smtp_auth_password: 'ujklzxuomllnjfij'
     receivers:
     - name: default-receiver
       email_configs:
-      - to: 'xxxxxxxxxxxx@126.com'
+      - to: '1415193349@qq.com'
     - name: alertsnitch
       webhook_configs:
         - url: http://alertsnitch:9567/webhook

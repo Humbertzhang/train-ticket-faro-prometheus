@@ -2,6 +2,10 @@ apiVersion: v1
 kind: Service
 metadata:
   name: ts-admin-basic-info-service
+  annotations:
+    prometheus.io/path: "/actuator/prometheus"
+    prometheus.io/port: "18767"
+    prometheus.io/scrape: "true"
 spec:
   ports:
     - name: http
@@ -13,6 +17,10 @@ apiVersion: v1
 kind: Service
 metadata:
   name: ts-admin-order-service
+  annotations:
+    prometheus.io/path: "/actuator/prometheus"
+    prometheus.io/port: "16112"
+    prometheus.io/scrape: "true"
 spec:
   ports:
     - name: http
@@ -24,6 +32,10 @@ apiVersion: v1
 kind: Service
 metadata:
   name: ts-admin-route-service
+  annotations:
+    prometheus.io/path: "/actuator/prometheus"
+    prometheus.io/port: "16113"
+    prometheus.io/scrape: "true"
 spec:
   ports:
     - name: http
@@ -35,6 +47,10 @@ apiVersion: v1
 kind: Service
 metadata:
   name: ts-admin-travel-service
+  annotations:
+    prometheus.io/path: "/actuator/prometheus"
+    prometheus.io/port: "16114"
+    prometheus.io/scrape: "true"
 spec:
   ports:
     - name: http
@@ -46,6 +62,10 @@ apiVersion: v1
 kind: Service
 metadata:
   name: ts-admin-user-service
+  annotations:
+    prometheus.io/path: "/actuator/prometheus"
+    prometheus.io/port: "16115"
+    prometheus.io/scrape: "true"
 spec:
   ports:
     - name: http
@@ -57,6 +77,10 @@ apiVersion: v1
 kind: Service
 metadata:
   name: ts-assurance-service
+  annotations:
+    prometheus.io/path: "/actuator/prometheus"
+    prometheus.io/port: "18888"
+    prometheus.io/scrape: "true"
 spec:
   ports:
     - name: http
@@ -68,6 +92,10 @@ apiVersion: v1
 kind: Service
 metadata:
   name: ts-auth-service
+  annotations:
+    prometheus.io/path: "/actuator/prometheus"
+    prometheus.io/port: "12340"
+    prometheus.io/scrape: "true"
 spec:
   ports:
     - name: http
@@ -79,6 +107,10 @@ apiVersion: v1
 kind: Service
 metadata:
   name: ts-avatar-service
+  annotations:
+    prometheus.io/path: "/actuator/prometheus"
+    prometheus.io/port: "17001"
+    prometheus.io/scrape: "true"
 spec:
   ports:
     - name: http
@@ -90,6 +122,10 @@ apiVersion: v1
 kind: Service
 metadata:
   name: ts-basic-service
+  annotations:
+    prometheus.io/path: "/actuator/prometheus"
+    prometheus.io/port: "15680"
+    prometheus.io/scrape: "true"
 spec:
   ports:
     - name: http
@@ -101,6 +137,10 @@ apiVersion: v1
 kind: Service
 metadata:
   name: ts-cancel-service
+  annotations:
+    prometheus.io/path: "/actuator/prometheus"
+    prometheus.io/port: "18885"
+    prometheus.io/scrape: "true"
 spec:
   ports:
     - name: http
@@ -112,6 +152,10 @@ apiVersion: v1
 kind: Service
 metadata:
   name: ts-config-service
+  annotations:
+    prometheus.io/path: "/actuator/prometheus"
+    prometheus.io/port: "15679"
+    prometheus.io/scrape: "true"
 spec:
   ports:
     - name: http
@@ -123,6 +167,10 @@ apiVersion: v1
 kind: Service
 metadata:
   name: ts-consign-price-service
+  annotations:
+    prometheus.io/path: "/actuator/prometheus"
+    prometheus.io/port: "16110"
+    prometheus.io/scrape: "true"
 spec:
   ports:
     - name: http
@@ -134,6 +182,10 @@ apiVersion: v1
 kind: Service
 metadata:
   name: ts-consign-service
+  annotations:
+    prometheus.io/path: "/actuator/prometheus"
+    prometheus.io/port: "16111"
+    prometheus.io/scrape: "true"
 spec:
   ports:
     - name: http
@@ -145,6 +197,10 @@ apiVersion: v1
 kind: Service
 metadata:
   name: ts-contacts-service
+  annotations:
+    prometheus.io/path: "/actuator/prometheus"
+    prometheus.io/port: "12347"
+    prometheus.io/scrape: "true"
 spec:
   ports:
     - name: http
@@ -156,6 +212,10 @@ apiVersion: v1
 kind: Service
 metadata:
   name: ts-delivery-service
+  annotations:
+    prometheus.io/path: "/actuator/prometheus"
+    prometheus.io/port: "18808"
+    prometheus.io/scrape: "true"
 spec:
   ports:
     - name: http
@@ -167,6 +227,10 @@ apiVersion: v1
 kind: Service
 metadata:
   name: ts-execute-service
+  annotations:
+    prometheus.io/path: "/actuator/prometheus"
+    prometheus.io/port: "12386"
+    prometheus.io/scrape: "true"
 spec:
   ports:
     - name: http
@@ -178,6 +242,10 @@ apiVersion: v1
 kind: Service
 metadata:
   name: ts-food-service
+  annotations:
+    prometheus.io/path: "/actuator/prometheus"
+    prometheus.io/port: "18856"
+    prometheus.io/scrape: "true"
 spec:
   ports:
     - name: http
@@ -189,6 +257,10 @@ apiVersion: v1
 kind: Service
 metadata:
   name: ts-gateway-service
+  annotations:
+    prometheus.io/path: "/actuator/prometheus"
+    prometheus.io/port: "18888"
+    prometheus.io/scrape: "true"
 spec:
   ports:
     - name: http
@@ -202,6 +274,10 @@ apiVersion: v1
 kind: Service
 metadata:
   name: ts-inside-payment-service
+  annotations:
+    prometheus.io/path: "/actuator/prometheus"
+    prometheus.io/port: "18673"
+    prometheus.io/scrape: "true"
 spec:
   ports:
     - name: http
@@ -213,6 +289,10 @@ apiVersion: v1
 kind: Service
 metadata:
   name: ts-news-service
+  annotations:
+    prometheus.io/path: "/actuator/prometheus"
+    prometheus.io/port: "12862"
+    prometheus.io/scrape: "true"
 spec:
   ports:
     - name: http
@@ -224,6 +304,10 @@ apiVersion: v1
 kind: Service
 metadata:
   name: ts-notification-service
+  annotations:
+    prometheus.io/path: "/actuator/prometheus"
+    prometheus.io/port: "17853"
+    prometheus.io/scrape: "true"
 spec:
   ports:
     - name: http
@@ -235,6 +319,10 @@ apiVersion: v1
 kind: Service
 metadata:
   name: ts-order-other-service
+  annotations:
+    prometheus.io/path: "/actuator/prometheus"
+    prometheus.io/port: "12032"
+    prometheus.io/scrape: "true"
 spec:
   ports:
     - name: http
@@ -246,6 +334,10 @@ apiVersion: v1
 kind: Service
 metadata:
   name: ts-order-service
+  annotations:
+    prometheus.io/path: "/actuator/prometheus"
+    prometheus.io/port: "12031"
+    prometheus.io/scrape: "true"
 spec:
   ports:
     - name: http
@@ -257,6 +349,10 @@ apiVersion: v1
 kind: Service
 metadata:
   name: ts-payment-service
+  annotations:
+    prometheus.io/path: "/actuator/prometheus"
+    prometheus.io/port: "19001"
+    prometheus.io/scrape: "true"
 spec:
   ports:
     - name: http
@@ -268,6 +364,10 @@ apiVersion: v1
 kind: Service
 metadata:
   name: ts-preserve-other-service
+  annotations:
+    prometheus.io/path: "/actuator/prometheus"
+    prometheus.io/port: "14569"
+    prometheus.io/scrape: "true"
 spec:
   ports:
     - name: http
@@ -279,6 +379,10 @@ apiVersion: v1
 kind: Service
 metadata:
   name: ts-preserve-service
+  annotations:
+    prometheus.io/path: "/actuator/prometheus"
+    prometheus.io/port: "14568"
+    prometheus.io/scrape: "true"
 spec:
   ports:
     - name: http
@@ -290,6 +394,10 @@ apiVersion: v1
 kind: Service
 metadata:
   name: ts-price-service
+  annotations:
+    prometheus.io/path: "/actuator/prometheus"
+    prometheus.io/port: "16579"
+    prometheus.io/scrape: "true"
 spec:
   ports:
     - name: http
@@ -301,6 +409,10 @@ apiVersion: v1
 kind: Service
 metadata:
   name: ts-rebook-service
+  annotations:
+    prometheus.io/path: "/actuator/prometheus"
+    prometheus.io/port: "18886"
+    prometheus.io/scrape: "true"
 spec:
   ports:
     - name: http
@@ -312,6 +424,10 @@ apiVersion: v1
 kind: Service
 metadata:
   name: ts-route-plan-service
+  annotations:
+    prometheus.io/path: "/actuator/prometheus"
+    prometheus.io/port: "14578"
+    prometheus.io/scrape: "true"
 spec:
   ports:
     - name: http
@@ -323,6 +439,10 @@ apiVersion: v1
 kind: Service
 metadata:
   name: ts-route-service
+  annotations:
+    prometheus.io/path: "/actuator/prometheus"
+    prometheus.io/port: "11178"
+    prometheus.io/scrape: "true"
 spec:
   ports:
     - name: http
@@ -334,6 +454,10 @@ apiVersion: v1
 kind: Service
 metadata:
   name: ts-seat-service
+  annotations:
+    prometheus.io/path: "/actuator/prometheus"
+    prometheus.io/port: "18898"
+    prometheus.io/scrape: "true"
 spec:
   ports:
     - name: http
@@ -345,6 +469,10 @@ apiVersion: v1
 kind: Service
 metadata:
   name: ts-security-service
+  annotations:
+    prometheus.io/path: "/actuator/prometheus"
+    prometheus.io/port: "11188"
+    prometheus.io/scrape: "true"
 spec:
   ports:
     - name: http
@@ -356,6 +484,10 @@ apiVersion: v1
 kind: Service
 metadata:
   name: ts-station-food-service
+  annotations:
+    prometheus.io/path: "/actuator/prometheus"
+    prometheus.io/port: "18855"
+    prometheus.io/scrape: "true"
 spec:
   ports:
     - name: http
@@ -367,6 +499,10 @@ apiVersion: v1
 kind: Service
 metadata:
   name: ts-station-service
+  annotations:
+    prometheus.io/path: "/actuator/prometheus"
+    prometheus.io/port: "12345"
+    prometheus.io/scrape: "true"
 spec:
   ports:
     - name: http
@@ -378,6 +514,10 @@ apiVersion: v1
 kind: Service
 metadata:
   name: ts-ticket-office-service
+  annotations:
+    prometheus.io/path: "/actuator/prometheus"
+    prometheus.io/port: "16108"
+    prometheus.io/scrape: "true"
 spec:
   ports:
     - name: http
@@ -389,6 +529,10 @@ apiVersion: v1
 kind: Service
 metadata:
   name: ts-train-food-service
+  annotations:
+    prometheus.io/path: "/actuator/prometheus"
+    prometheus.io/port: "19999"
+    prometheus.io/scrape: "true"
 spec:
   ports:
     - name: http
@@ -400,6 +544,10 @@ apiVersion: v1
 kind: Service
 metadata:
   name: ts-train-service
+  annotations:
+    prometheus.io/path: "/actuator/prometheus"
+    prometheus.io/port: "14567"
+    prometheus.io/scrape: "true"
 spec:
   ports:
     - name: http
@@ -411,6 +559,10 @@ apiVersion: v1
 kind: Service
 metadata:
   name: ts-travel-plan-service
+  annotations:
+    prometheus.io/path: "/actuator/prometheus"
+    prometheus.io/port: "14322"
+    prometheus.io/scrape: "true"
 spec:
   ports:
     - name: http
@@ -422,6 +574,10 @@ apiVersion: v1
 kind: Service
 metadata:
   name: ts-travel-service
+  annotations:
+    prometheus.io/path: "/actuator/prometheus"
+    prometheus.io/port: "12346"
+    prometheus.io/scrape: "true"
 spec:
   ports:
     - name: http
@@ -433,6 +589,10 @@ apiVersion: v1
 kind: Service
 metadata:
   name: ts-travel2-service
+  annotations:
+    prometheus.io/path: "/actuator/prometheus"
+    prometheus.io/port: "16346"
+    prometheus.io/scrape: "true"
 spec:
   ports:
     - name: http
@@ -444,6 +604,10 @@ apiVersion: v1
 kind: Service
 metadata:
   name: ts-user-service
+  annotations:
+    prometheus.io/path: "/actuator/prometheus"
+    prometheus.io/port: "12342"
+    prometheus.io/scrape: "true"
 spec:
   ports:
     - name: http
@@ -455,6 +619,10 @@ apiVersion: v1
 kind: Service
 metadata:
   name: ts-verification-code-service
+  annotations:
+    prometheus.io/path: "/actuator/prometheus"
+    prometheus.io/port: "15678"
+    prometheus.io/scrape: "true"
 spec:
   ports:
     - name: http
@@ -466,6 +634,10 @@ apiVersion: v1
 kind: Service
 metadata:
   name: ts-voucher-service
+  annotations:
+    prometheus.io/path: "/actuator/prometheus"
+    prometheus.io/port: "16101"
+    prometheus.io/scrape: "true"
 spec:
   ports:
     - name: http
@@ -477,6 +649,10 @@ apiVersion: v1
 kind: Service
 metadata:
   name: ts-ui-dashboard
+  annotations:
+    prometheus.io/path: "/actuator/prometheus"
+    prometheus.io/port: "8080"
+    prometheus.io/scrape: "true"
 spec:
   type: NodePort
   ports:

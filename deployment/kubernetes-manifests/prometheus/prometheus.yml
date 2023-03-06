@@ -271,7 +271,7 @@ spec:
         app: prometheus
     spec:
       containers:
-      - image: prom/prometheus:v2.0.0
+      - image: prom/prometheus:latest
         imagePullPolicy: IfNotPresent
         name: prometheus
         command:
@@ -281,6 +281,7 @@ spec:
         - "--storage.tsdb.path=/prometheus"
         - "--storage.tsdb.retention=24h"
         - "--web.enable-lifecycle"
+        - "--web.enable-remote-write-receiver"
         ports:
         - containerPort: 9090
           protocol: TCP
