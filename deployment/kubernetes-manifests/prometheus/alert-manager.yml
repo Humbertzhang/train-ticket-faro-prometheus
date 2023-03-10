@@ -25,12 +25,12 @@ spec:
       priorityClassName: system-cluster-critical
       containers:
         - name: prometheus-alertmanager
-          image: "prom/alertmanager:v0.14.0"
+          image: "prom/alertmanager:latest"
           imagePullPolicy: "IfNotPresent"
           args:
             - --config.file=/etc/config/alertmanager.yml
-            - --storage.path=/data
-            - --web.external-url=/
+            - --storage.path=/etc/alertmanager/data
+            - --web.external-url=http://139.196.231.60:30004
           ports:
             - containerPort: 9093
           readinessProbe:

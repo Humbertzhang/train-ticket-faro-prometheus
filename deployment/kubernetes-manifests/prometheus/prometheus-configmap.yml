@@ -187,3 +187,16 @@ data:
         annotations:
           summary: "Pod {{ $labels.kubernetes_pod_name }} down"
           description: "{{ $labels.kubernetes_pod_name }} of namespace {{ $labels.kubernetes_namespace }} has been down for more than 5 minutes."
+
+  consign.rules: |
+    groups:
+    - name: 行李相关接口
+      rules:
+      - alert: 根据账户id查询行李接口错误率上升
+        expr: increase(request_get_consigns_account_id_error_total[5m]) > 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "根据账户id查询行李接口错误率上升"
+          description: "根据账户id查询行李接口1min内错误数超过阈值0，当前值：{{ $value }}"

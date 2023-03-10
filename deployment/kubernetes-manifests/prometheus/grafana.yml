@@ -18,8 +18,12 @@ spec:
         app: grafana
         component: core
     spec:
+      securityContext:
+        fsGroup: 472
+        supplementalGroups:
+          - 0
       containers:
-      - image: grafana/grafana:5.0.0
+      - image: grafana/grafana:latest
         name: grafana-core
         imagePullPolicy: IfNotPresent
         resources:
@@ -40,7 +44,7 @@ spec:
             port: 3000
         volumeMounts:
         - name: grafana-persistent-storage
-          mountPath: /var
+          mountPath: /var/lib/grafana
       volumes:
       - name: timezone
         hostPath:

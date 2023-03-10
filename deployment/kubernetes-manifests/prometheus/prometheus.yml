@@ -280,6 +280,7 @@ spec:
         - "--config.file=/etc/prometheus/prometheus.yml"
         - "--storage.tsdb.path=/prometheus"
         - "--storage.tsdb.retention=24h"
+        - "--web.external-url=http://139.196.231.60:30003"
         - "--web.enable-lifecycle"
         - "--web.enable-remote-write-receiver"
         ports:
